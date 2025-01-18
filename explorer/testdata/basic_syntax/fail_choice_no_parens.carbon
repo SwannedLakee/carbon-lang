@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -15,7 +15,7 @@ choice Ints {
 fn Main() -> i32 {
   match (Ints.None) {
     case Ints.None() => { return 0; }
-    // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/basic_syntax/fail_choice_no_parens.carbon:[[@LINE+3]]: type error in `match` pattern type
+    // CHECK:STDERR: COMPILATION ERROR: fail_choice_no_parens.carbon:[[@LINE+3]]: type error in `match` pattern type
     // CHECK:STDERR: expected: choice Ints
     // CHECK:STDERR: actual: fn () -> choice Ints
     default => { return 1; }

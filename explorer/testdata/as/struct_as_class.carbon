@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 5
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -15,3 +14,5 @@ class A {
 fn Main() -> i32 {
   return ({.n = 5} as A).Get();
 }
+
+// CHECK:STDOUT: result: 5

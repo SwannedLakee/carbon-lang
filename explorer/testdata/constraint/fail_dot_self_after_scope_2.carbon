@@ -2,14 +2,14 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 interface FrobWith(T:! type) {}
 
 fn F[T:! FrobWith(.Self),
-     // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/constraint/fail_dot_self_after_scope_2.carbon:[[@LINE+1]]: `.Self` used in type of non-type generic binding `U`
+     // CHECK:STDERR: COMPILATION ERROR: fail_dot_self_after_scope_2.carbon:[[@LINE+1]]: `.Self` used in type of non-type generic binding `U`
      U:! .Self]() {
 }
 

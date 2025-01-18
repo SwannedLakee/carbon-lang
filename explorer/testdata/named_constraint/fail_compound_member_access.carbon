@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -12,10 +12,10 @@ interface MyAddWith(T:! type) {
 }
 
 constraint MyAdd {
-  extends MyAddWith(Self) where .Result = Self;
+  extend MyAddWith(Self) where .Result = Self;
 }
 
-external impl i32 as MyAdd {
+impl i32 as MyAdd {
   fn Op[self: i32](other: i32) -> i32 { return self + other; }
 }
 
@@ -25,6 +25,6 @@ fn Main() -> i32 {
   // MemberName value. We will likely need MemberName to remember the
   // constraint as written, not only the interface in which the member was
   // found.
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/named_constraint/fail_compound_member_access.carbon:[[@LINE+1]]: could not find implementation of interface MyAddWith(T = Self) for i32
+  // CHECK:STDERR: COMPILATION ERROR: fail_compound_member_access.carbon:[[@LINE+1]]: could not find implementation of interface MyAddWith(T = Self) for i32
   return n.(MyAdd.Op)(n);
 }

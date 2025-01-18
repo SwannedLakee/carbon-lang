@@ -12,7 +12,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: f71fa2c1f9cf5cb705f73dffe4b21f7c61470ba9 # frozen: v4.4.0
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # frozen: v5.0.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -30,7 +30,7 @@ repos:
       - id: trailing-whitespace
         exclude: '^(.*/fuzzer_corpus/.*|.*/testdata/.*\.golden|.*\.svg)$'
   - repo: https://github.com/google/pre-commit-tool-hooks
-    rev: e006c8ab09f96ec32ba728b488ea5d17e1f8f6c0 # frozen: v1.2.4
+    rev: efaea7c61c774c0b1a9805fd999e754a2d19dbd1 # frozen: v1.2.5
     hooks:
       - id: check-google-doc-style
       - id: markdown-toc
@@ -45,40 +45,57 @@ repos:
 
   # Formatters should be run late so that they can re-format any prior changes.
   - repo: https://github.com/psf/black
-    rev: b0d1fba7ac3be53c71fb0d3211d911e629f8aecb # frozen: 23.1.0
+    rev: 1b2427a2b785cc4aac97c19bb4b9a0de063f9547 # frozen: 24.10.0
     hooks:
       - id: black
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: cafd5506f18eea191804850dacc0a4264772d59d # frozen: v3.0.0-alpha.4
+  - repo: local
     hooks:
       - id: prettier
+        name: prettier
+        language: node
+        additional_dependencies: ['prettier@3.3.3']
+        types_or: [html, javascript, json, markdown, yaml]
+        entry: npx prettier --write --log-level=warn
   - repo: local
     hooks:
       - id: buildifier
         name: Bazel buildifier
         entry: scripts/run_buildifier.py
-        args: ['-r', '.']
+        # Beyond just formatting, explicitly fix lint warnings.
+        args: ['--lint=fix', '--warnings=all', '-r', '.']
         language: python
         files: |
           (?x)^(
             .*BUILD.*|
+            .*MODULE.bazel.*|
             .*WORKSPACE.*|
             .*\.bzl
+          )$
+      - id: check-bazel-mod-deps
+        # Check this after buildifier because buildifier may modify inputs, and
+        # MODULE.bazel.lock includes line/column details.
+        name: Check bazel mod deps
+        entry: scripts/bazel_mod_deps.py
+        language: python
+        files: |
+          (?x)^(
+            .*MODULE.bazel.*|
+            .*WORKSPACE.*
           )$
       - id: clang-format
         name: clang-format
         entry: clang-format
-        types_or: [c++, proto]
+        types_or: [c++, def]
         language: python
         args: ['-i']
-        additional_dependencies: ['clang-format==16.0.0']
+        additional_dependencies: ['clang-format==17.0.1']
       - id: explorer-format-grammar
         name: Format the explorer grammar file
         entry: explorer/syntax/format_grammar.py
         language: python
         files: ^explorer/syntax/(lexer.lpp|parser.ypp)$
         pass_filenames: false
-        additional_dependencies: ['clang-format==16.0.0']
+        additional_dependencies: ['clang-format==17.0.1']
 
   - repo: local
     hooks:
@@ -118,11 +135,11 @@ repos:
         files: ^.*/BUILD$
         pass_filenames: false
   - repo: https://github.com/PyCQA/flake8
-    rev: c838a5e98878f17889cfce311e1406d252f87ec5 # frozen: 6.0.0
+    rev: e43806be3607110919eff72939fda031776e885a # frozen: 7.1.1
     hooks:
       - id: flake8
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: '0b037c2b59aa62dc3be3287d175295f1a5547eb9' # frozen: v0.991
+    rev: 'f56614daa94d5cd733d3b7004c5df9caad267b4a' # frozen: v1.13.0
     hooks:
       - id: mypy
         # Use setup.cfg to match the command line.
@@ -144,7 +161,7 @@ repos:
               .*_test\.py
           )$
   - repo: https://github.com/codespell-project/codespell
-    rev: 055cb2a9bc1e98a9800a352c53c38a50faf62dc3 # frozen: v2.2.2
+    rev: 193cd7d27cd571f79358af09a8fb8997e54f8fff # frozen: v2.3.0
     hooks:
       - id: codespell
         args: ['-I', '.codespell_ignore', '--uri-ignore-words-list', '*']
@@ -157,7 +174,7 @@ repos:
               .*/fuzzer_corpus/.*
           )$
   - repo: https://github.com/google/pre-commit-tool-hooks
-    rev: e006c8ab09f96ec32ba728b488ea5d17e1f8f6c0 # frozen: v1.2.4
+    rev: efaea7c61c774c0b1a9805fd999e754a2d19dbd1 # frozen: v1.2.5
     hooks:
       - id: check-copyright
         args:
@@ -167,10 +184,15 @@ repos:
             Exceptions. See /LICENSE for license information.
             SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
           - --custom_format
-          - '\.(carbon|proto|ypp)$'
+          - '\.(carbon|c|json|scss|ypp)(\.tmpl)?$'
           - ''
           - '// '
           - ''
+          - --custom_format
+          - '\.(js|ts|mjs)$'
+          - '/*'
+          - ' * '
+          - ' */'
           - --custom_format
           - '\.(l|lpp|y)$'
           - '/*'
@@ -186,13 +208,29 @@ repos:
           - ''
           - '" '
           - ''
+          - --custom_format
+          - '\.scm$'
+          - ''
+          - '; '
+          - ''
+          - --custom_format
+          - '\.lua$'
+          - ''
+          - '-- '
+          - ''
         exclude: |
           (?x)^(
               .bazelversion|
               .github/pull_request_template.md|
+              .python-version|
               compile_flags.txt|
+              github_tools/requirements.txt|
               third_party/.*|
+              utils/vscode/esbuild.js|
+              website/.ruby-version|
+              website/Gemfile.lock|
               .*\.def|
+              .*\.png|
               .*\.svg|
               .*/fuzzer_corpus/.*|
               .*/testdata/.*\.golden
@@ -202,7 +240,10 @@ repos:
 # This excludes third-party code, and patches to third-party code.
 exclude: |
   (?x)^(
-      bazel/patches/.*\.patch|
+      MODULE.bazel.lock|
+      bazel/bazel_clang_tidy/.*\.patch|
+      bazel/google_benchmark/.*\.patch|
+      bazel/libpfm/.*\.patch|
+      bazel/llvm_project/.*\.patch|
       third_party/examples/.*/carbon/.*|
-      third_party/llvm-project/.*|
   )$

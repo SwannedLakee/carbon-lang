@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 12
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -16,11 +15,11 @@ interface Walkable {
 }
 
 constraint Traversible {
-  extends Runnable;
-  extends Walkable;
+  extend Runnable;
+  extend Walkable;
 }
 
-external impl i32 as Traversible {
+impl i32 as Traversible {
   fn Run[self: i32]() -> i32 {
     return 10 * self;
   }
@@ -33,3 +32,5 @@ fn Main() -> i32 {
   var n: i32 = 1;
   return n.(Runnable.Run)() + n.(Walkable.Walk)();
 }
+
+// CHECK:STDOUT: result: 12

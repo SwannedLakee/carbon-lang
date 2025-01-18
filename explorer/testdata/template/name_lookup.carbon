@@ -2,13 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: MemberF.F
-// CHECK:STDOUT: ImplF.(HasF.F)
-// CHECK:STDOUT: BothFs.(HasF.F)
-// CHECK:STDOUT: BothFs.F
-// CHECK:STDOUT: BothFs.F
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -43,14 +37,14 @@ class MemberF {
 }
 
 class ImplF {}
-external impl ImplF as HasF {
+impl ImplF as HasF {
   fn F[self: Self]() { Print("ImplF.(HasF.F)"); }
 }
 
 class BothFs {
   fn F[self: Self]() { Print("BothFs.F"); }
 }
-external impl BothFs as HasF {
+impl BothFs as HasF {
   fn F[self: Self]() { Print("BothFs.(HasF.F)"); }
 }
 
@@ -73,3 +67,10 @@ fn Main() -> i32 {
   both.(CallF(ImplKind.UnconstrainedTemplate).DoIt)();
   return 0;
 }
+
+// CHECK:STDOUT: MemberF.F
+// CHECK:STDOUT: ImplF.(HasF.F)
+// CHECK:STDOUT: BothFs.(HasF.F)
+// CHECK:STDOUT: BothFs.F
+// CHECK:STDOUT: BothFs.F
+// CHECK:STDOUT: result: 0

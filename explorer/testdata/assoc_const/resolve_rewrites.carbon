@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -37,7 +36,7 @@ fn F[
 }
 
 class C {
-  impl as ManyTypes where
+  extend impl as ManyTypes where
     .T0 = i32 and
     .T1 = .T0 and
     .T2 = .T1 and
@@ -54,3 +53,5 @@ fn Main() -> i32 {
   var c: C = {};
   return F(c);
 }
+
+// CHECK:STDOUT: result: 1

@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 5
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -24,3 +23,5 @@ fn Main() -> i32 {
   // TODO: Should `GetX({.x = 1, .y = 2})` work? See #1251.
   return GetX(p) + GetY(i32, {.x = 3, .y = 4});
 }
+
+// CHECK:STDOUT: result: 5

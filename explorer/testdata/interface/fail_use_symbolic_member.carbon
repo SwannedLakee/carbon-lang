@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -10,7 +10,7 @@ interface X {
   fn F() -> type;
 }
 
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/interface/fail_use_symbolic_member.carbon:[[@LINE+1]]: member lookup for F in symbolic witness 0 of witness for T:! X
+// CHECK:STDERR: COMPILATION ERROR: fail_use_symbolic_member.carbon:[[@LINE+1]]: member lookup for F in symbolic witness 0 of witness for T:! X
 fn G[T:! X]() -> T.F() {
   return {};
 }

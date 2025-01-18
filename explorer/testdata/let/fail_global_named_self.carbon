@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 // Error: Can't use keyword `Self` as the name of a global.
-// CHECK:STDERR: SYNTAX ERROR: explorer/testdata/let/fail_global_named_self.carbon:[[@LINE+1]]: syntax error, unexpected SELF, expecting identifier
+// CHECK:STDERR: SYNTAX ERROR: fail_global_named_self.carbon:[[@LINE+1]]: syntax error, unexpected SELF, expecting identifier
 let Self: i32 = 10;
 
 fn Main() -> i32 {

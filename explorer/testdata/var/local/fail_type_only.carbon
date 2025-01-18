@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/var/local/fail_type_only.carbon:[[@LINE+1]]: An irrefutable pattern is required, but `i32` is refutable.
+  // CHECK:STDERR: COMPILATION ERROR: fail_type_only.carbon:[[@LINE+1]]: An irrefutable pattern is required, but `i32` is refutable.
   var i32;
   return 0;
 }

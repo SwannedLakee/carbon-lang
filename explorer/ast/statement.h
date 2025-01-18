@@ -16,8 +16,8 @@
 #include "explorer/ast/pattern.h"
 #include "explorer/ast/return_term.h"
 #include "explorer/ast/value_node.h"
-#include "explorer/common/arena.h"
-#include "explorer/common/source_location.h"
+#include "explorer/base/arena.h"
+#include "explorer/base/source_location.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/Compiler.h"
 
@@ -29,9 +29,10 @@ class Statement : public AstNode {
  public:
   ~Statement() override = 0;
 
-  void Print(llvm::raw_ostream& out) const override { PrintDepth(-1, out); }
-  void PrintID(llvm::raw_ostream& out) const override { PrintDepth(1, out); }
-  void PrintDepth(int depth, llvm::raw_ostream& out) const;
+  void Print(llvm::raw_ostream& out) const override { PrintIndent(0, out); }
+  void PrintID(llvm::raw_ostream& out) const override;
+
+  void PrintIndent(int indent_num_spaces, llvm::raw_ostream& out) const;
 
   static auto classof(const AstNode* node) {
     return InheritsFromStatement(node->kind());
@@ -149,7 +150,7 @@ class Assign : public Statement {
   // Set the rewritten form of this statement. Can only be called during type
   // checking.
   auto set_rewritten_form(Nonnull<const Expression*> rewritten_form) -> void {
-    CARBON_CHECK(!rewritten_form_.has_value()) << "rewritten form set twice";
+    CARBON_CHECK(!rewritten_form_.has_value(), "rewritten form set twice");
     rewritten_form_ = rewritten_form;
   }
 
@@ -195,7 +196,7 @@ class IncrementDecrement : public Statement {
   // Set the rewritten form of this statement. Can only be called during type
   // checking.
   auto set_rewritten_form(Nonnull<const Expression*> rewritten_form) -> void {
-    CARBON_CHECK(!rewritten_form_.has_value()) << "rewritten form set twice";
+    CARBON_CHECK(!rewritten_form_.has_value(), "rewritten form set twice");
     rewritten_form_ = rewritten_form;
   }
 
@@ -255,7 +256,7 @@ class VariableDefinition : public Statement {
 
   // Can only be called by type-checking, if a conversion was required.
   void set_init(Nonnull<Expression*> init) {
-    CARBON_CHECK(has_init()) << "should not add a new initializer";
+    CARBON_CHECK(has_init(), "should not add a new initializer");
     init_ = init;
   }
 
@@ -263,7 +264,7 @@ class VariableDefinition : public Statement {
     return expression_category_;
   }
 
-  auto is_returned() const -> bool { return def_type_ == Returned; };
+  auto is_returned() const -> bool { return def_type_ == Returned; }
 
  private:
   Nonnull<Pattern*> pattern_;

@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -10,7 +10,7 @@ fn ComputeSum(x: i32, y: i32) -> auto {
   if (x == 0) {
     return x;
   } else if (y == 0) {
-    // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/function/auto_return/fail_multiple_returns.carbon:[[@LINE+1]]: Only one return is allowed in a function with an `auto` return type.
+    // CHECK:STDERR: COMPILATION ERROR: fail_multiple_returns.carbon:[[@LINE+1]]: Only one return is allowed in a function with an `auto` return type.
     return y;
   } else {
     return x + y;

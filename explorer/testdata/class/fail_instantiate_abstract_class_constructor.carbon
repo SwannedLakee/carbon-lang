@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -15,7 +15,7 @@ abstract class C {
 }
 
 fn Main() -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/class/fail_instantiate_abstract_class_constructor.carbon:[[@LINE+1]]: Cannot instantiate abstract class C
+  // CHECK:STDERR: COMPILATION ERROR: fail_instantiate_abstract_class_constructor.carbon:[[@LINE+1]]: Cannot instantiate abstract class C
   var c: C = C.Create();
   return 0;
 }

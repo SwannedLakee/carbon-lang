@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -11,7 +11,7 @@ interface GetX {
 }
 
 impl forall [template T:! type] T as GetX {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/template/fail_no_member.carbon:[[@LINE+1]]: member access, unexpected i32 in self.x
+  // CHECK:STDERR: COMPILATION ERROR: fail_no_member.carbon:[[@LINE+1]]: member access, unexpected i32 in self.x
   fn DoIt[self: Self]() -> i32 { return self.x; }
 }
 

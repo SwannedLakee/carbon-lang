@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -10,7 +10,7 @@ class A {}
 
 fn Main() -> i32 {
   var a: A = {};
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/operators/fail_no_mul.carbon:[[@LINE+2]]: type error in `*`:
+  // CHECK:STDERR: COMPILATION ERROR: fail_no_mul.carbon:[[@LINE+2]]: type error in `*`:
   // CHECK:STDERR: could not find implementation of interface MulWith(U = i32) for class A
   a * 1;
   return 0;

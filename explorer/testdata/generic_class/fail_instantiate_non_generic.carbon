@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -15,7 +15,7 @@ class Point {
 }
 
 fn Main() -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/generic_class/fail_instantiate_non_generic.carbon:[[@LINE+1]]: in call `Point(i32)`, expected callee to be a function, found `type`
+  // CHECK:STDERR: COMPILATION ERROR: fail_instantiate_non_generic.carbon:[[@LINE+1]]: in call `Point(i32)`, expected callee to be a function, found `type`
   var p: Point(i32) = Point.Origin();
   return 0;
 }

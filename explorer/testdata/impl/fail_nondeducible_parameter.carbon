@@ -2,14 +2,14 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 interface A(T:! type) {}
 interface B {}
 
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/impl/fail_nondeducible_parameter.carbon:[[@LINE+1]]: parameter `T:! type` is not deducible from `impl i32 as interface B`
-external impl forall [T:! type] i32 as A(T) & B {}
+// CHECK:STDERR: COMPILATION ERROR: fail_nondeducible_parameter.carbon:[[@LINE+1]]: parameter `T:! type` is not deducible from `impl i32 as interface B`
+impl forall [T:! type] i32 as A(T) & B {}
 
 fn Main() -> i32 { return 0; }

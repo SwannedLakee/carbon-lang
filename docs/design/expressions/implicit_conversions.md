@@ -19,7 +19,7 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
     -   [Data types](#data-types)
     -   [Same type](#same-type)
     -   [Pointer conversions](#pointer-conversions)
-    -   [Type-of-types](#type-of-types)
+    -   [Facet types](#facet-types)
 -   [Consistency with `as`](#consistency-with-as)
 -   [Extensibility](#extensibility)
 -   [Alternatives considered](#alternatives-considered)
@@ -172,8 +172,8 @@ to `Base**` because that would allow storing a `Derived2*` into a `Derived*`:
 
 ```
 abstract class Base {}
-class Derived extends Base {}
-class Derived2 extends Base {}
+class Derived { extend base: Base; }
+class Derived2 { extend base: Base; }
 var d2: Derived2 = {};
 var p: Derived*;
 var q: Derived2* = &d2;
@@ -182,11 +182,11 @@ var r: Base** = &p;
 *r = q;
 ```
 
-### Type-of-types
+### Facet types
 
-A type `T` with [type-of-type](../generics/terminology.md#type-of-type) `TT1`
-can be implicitly converted to the type-of-type `TT2` if `T`
-[satisfies the requirements](../generics/details.md#subtyping-between-type-of-types)
+A type `T` with [facet type](../generics/terminology.md#facet-type) `TT1` can be
+implicitly converted to the facet type `TT2` if `T`
+[satisfies the requirements](../generics/details.md#subtyping-between-facet-types)
 of `TT2`.
 
 ## Consistency with `as`
@@ -208,7 +208,7 @@ extends
 
 ```
 interface ImplicitAs(Dest:! type) {
-  extends As(Dest);
+  extend As(Dest);
   // Inherited from As(Dest):
   // fn Convert[self: Self]() -> Dest;
 }

@@ -2,14 +2,14 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDERR: RUNTIME ERROR: explorer/data/prelude.carbon:{{.*}}: "Fail"
+// NOAUTOUPDATE
+// CHECK:STDERR: RUNTIME ERROR: prelude.carbon:{{\d+}}: "Fail"
 
 package ExplorerTest api;
 
 class ConvertTo(T:! type) {
   var v: T;
-  impl as ImplicitAs(T) {
+  extend impl as ImplicitAs(T) {
     fn Convert[self: Self]() -> T { return self.v; }
   }
 }

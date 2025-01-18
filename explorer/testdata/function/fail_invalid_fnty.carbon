@@ -2,11 +2,11 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/function/fail_invalid_fnty.carbon:[[@LINE+2]]: type error in `-`:
+// CHECK:STDERR: COMPILATION ERROR: fail_invalid_fnty.carbon:[[@LINE+2]]: type error in `-`:
 // CHECK:STDERR: could not find implementation of interface Negate for bool
 fn f(g: __Fn(-true) -> true) {
 }

@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 
 package ExplorerTest api;
@@ -17,7 +17,7 @@ class Point {
   var y: i32;
 }
 
-external impl Point as Vector {
+impl Point as Vector {
   fn Add[self: Point](b: Point) -> Point {
       return {.x = self.x + b.x, .y = self.y + b.y};
   }
@@ -26,14 +26,14 @@ external impl Point as Vector {
   }
 }
 
-external impl Point as Vector {
+impl Point as Vector {
   fn Add[self: Point](b: Point) -> Point {
       return {.x = self.x + b.x, .y = self.y + b.y};
   }
   fn Scale[self: Point](v: i32) -> Point {
       return {.x = self.x * v, .y = self.y * v};
   }
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/impl/fail_impl_redefinition.carbon:[[@LINE+1]]: ambiguous implementations of interface Vector for class Point
+// CHECK:STDERR: COMPILATION ERROR: fail_impl_redefinition.carbon:[[@LINE+1]]: ambiguous implementations of interface Vector for class Point
 }
 
 fn AddAndScaleGeneric[T:! Vector](a: T, b: T, s: i32) -> T {

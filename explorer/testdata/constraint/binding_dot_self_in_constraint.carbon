@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 6
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -20,3 +19,5 @@ fn DoMul[T:! MulWith(.Self) where .Result == .Self](x: T, y: T) -> T {
 fn Main() -> i32 {
   return DoMul(2, 3);
 }
+
+// CHECK:STDOUT: result: 6

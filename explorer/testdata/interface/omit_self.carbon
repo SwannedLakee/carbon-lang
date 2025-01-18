@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -18,7 +17,7 @@ class Point {
   var y: i32;
   // Allowed: means the same as `impl Self as Vector`
   //          or `impl Point as Vector`.
-  impl as Vector {
+  extend impl as Vector {
     fn Zero() -> Point {
       return {.x = 0, .y = 0};
     }
@@ -40,3 +39,5 @@ fn Main() -> i32 {
   var p: Point = AddAndScaleGeneric(a, 5);
   return p.x - 10;
 }
+
+// CHECK:STDOUT: result: 0

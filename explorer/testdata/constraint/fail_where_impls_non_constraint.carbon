@@ -2,13 +2,13 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 interface A {}
 
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/constraint/fail_where_impls_non_constraint.carbon:[[@LINE+1]]: expected a constraint in expression after `impls`, found i32
+// CHECK:STDERR: COMPILATION ERROR: fail_where_impls_non_constraint.carbon:[[@LINE+1]]: expected a constraint in expression after `impls`, found i32
 alias B = A where i32 impls i32;
 
 fn Main() -> i32 { return 0; }

@@ -2,13 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package Foo api;
 interface A { fn F[self: Self]() -> i32; }
 class X {
-  impl as A {
+  extend impl as A {
     fn F[self: Self]() -> i32 { return 1; }
   }
 }
@@ -16,3 +15,5 @@ fn Main() -> i32 {
   var a: X = {};
   return a.(X.(A.F))();
 }
+
+// CHECK:STDOUT: result: 1

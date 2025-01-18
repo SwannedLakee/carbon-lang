@@ -2,11 +2,22 @@
 # Exceptions. See /LICENSE for license information.
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-"""Rules for building fuzz tests."""
+"""Rules for building file tests.
 
-load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+file_test uses the tests_as_input_file rule to transform test dependencies into
+a file which can be accessed as a list. This avoids long argument parsing.
+"""
 
-def file_test(name, srcs, deps, tests, shard_count = 1):
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//bazel/manifest:defs.bzl", "manifest")
+
+def file_test(
+        name,
+        tests,
+        data = [],
+        args = [],
+        prebuilt_binary = None,
+        **kwargs):
     """Generates tests using the file_test base.
 
     There will be one main test using `name` that can be sharded, and includes
@@ -15,26 +26,36 @@ def file_test(name, srcs, deps, tests, shard_count = 1):
 
     Args:
       name: The base name of the tests.
-      srcs: cc_test srcs.
-      deps: cc_test deps.
-      tests: The list of test files to use as data.
-      shard_count: The number of shards to use; defaults to 1.
+      tests: The list of test files to use as data, typically a glob.
+      data: Passed to cc_test.
+      args: Passed to cc_test.
+      prebuilt_binary: If set, specifies a prebuilt test binary to use instead
+                       of building a new one.
+      **kwargs: Passed to cc_test.
     """
-    subset_name = "{0}.subset".format(name)
 
-    native.cc_test(
-        name = name,
-        srcs = srcs,
-        deps = deps,
-        data = tests,
-        args = ["$(location {0})".format(x) for x in tests],
-        shard_count = shard_count,
+    # Ensure tests are always a filegroup for tests_as_input_file_rule.
+    tests_file = "{0}.tests".format(name)
+    manifest(
+        name = tests_file,
+        srcs = tests,
+        testonly = 1,
     )
+    args = ["--test_targets_file=$(rootpath :{0})".format(tests_file)] + args
+    data = [":" + tests_file] + tests + data
 
-    native_test(
-        name = subset_name,
-        src = name,
-        out = subset_name,
-        data = tests,
-        tags = ["manual"],
-    )
+    if prebuilt_binary:
+        native.sh_test(
+            name = name,
+            srcs = [prebuilt_binary],
+            data = data,
+            args = args,
+            **kwargs
+        )
+    else:
+        cc_test(
+            name = name,
+            data = data,
+            args = args,
+            **kwargs
+        )

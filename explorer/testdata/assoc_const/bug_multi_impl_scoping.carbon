@@ -2,15 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: (C(i32) as A).FA()
-// CHECK:STDOUT: 6
-// CHECK:STDOUT: (C(i32) as A).FA()
-// CHECK:STDOUT: 7
-// CHECK:STDOUT: (C(T) as B).FB()
-// CHECK:STDOUT: (C(T) as A).FA()
-// CHECK:STDOUT: 3
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -24,7 +16,7 @@ interface B {
 }
 
 class C(T:! type) {
-  impl as A & B where .TA = i32 and .TB = i32 {
+  extend impl as A & B where .TA = i32 and .TB = i32 {
     fn FA() -> i32 {
       Print("(C(T) as A).FA()");
       // OK, know that TA is i32 here.
@@ -44,7 +36,7 @@ class C(T:! type) {
   }
 }
 
-external impl C(i32) as A where .TA = (i32, i32) {
+impl C(i32) as A where .TA = (i32, i32) {
   fn FA() -> (i32, i32) {
     Print("(C(i32) as A).FA()");
     return (6, 7);
@@ -61,3 +53,12 @@ fn Main() -> i32 {
   Print("{0}", C(i32).(B.FB)());
   return 0;
 }
+
+// CHECK:STDOUT: (C(i32) as A).FA()
+// CHECK:STDOUT: 6
+// CHECK:STDOUT: (C(i32) as A).FA()
+// CHECK:STDOUT: 7
+// CHECK:STDOUT: (C(T) as B).FB()
+// CHECK:STDOUT: (C(T) as A).FA()
+// CHECK:STDOUT: 3
+// CHECK:STDOUT: result: 0

@@ -6,8 +6,10 @@
 
 #include <optional>
 
-#include "explorer/common/error_builders.h"
-#include "llvm/Support/Error.h"
+#include "common/ostream.h"
+#include "explorer/base/error_builders.h"
+#include "explorer/base/print_as_id.h"
+#include "llvm/ADT/ScopeExit.h"
 
 namespace Carbon {
 
@@ -23,22 +25,54 @@ auto StaticScope::Add(std::string_view name, ValueNodeView entity,
     if (static_cast<int>(status) > static_cast<int>(it->second.status)) {
       it->second.status = status;
     }
+  } else {
+    if (trace_stream_->is_enabled()) {
+      trace_stream_->Result()
+          << "declared `" << name << "` as `" << entity << "` in `"
+          << PrintAsID(*this) << "` (" << entity.base().source_loc() << ")\n";
+    }
   }
   return Success();
 }
 
+template <typename Action>
+void StaticScope::PrintCommon(Action action) const {
+  if (ast_node_) {
+    action(ast_node_.value());
+  } else {
+    *trace_stream_ << "package";
+  }
+}
+
+void StaticScope::Print(llvm::raw_ostream& out) const {
+  PrintCommon([&out](auto node) { node->Print(out); });
+}
+
+void StaticScope::PrintID(llvm::raw_ostream& out) const {
+  PrintCommon([&out](auto node) { node->PrintID(out); });
+}
+
 void StaticScope::MarkDeclared(std::string_view name) {
   auto it = declared_names_.find(name);
-  CARBON_CHECK(it != declared_names_.end()) << name << " not found";
+  CARBON_CHECK(it != declared_names_.end(), "{0} not found", name);
   if (it->second.status == NameStatus::KnownButNotDeclared) {
     it->second.status = NameStatus::DeclaredButNotUsable;
+    if (trace_stream_->is_enabled()) {
+      trace_stream_->Result()
+          << "marked `" << name << "` declared but not usable in `"
+          << PrintAsID(*this) << "`\n";
+    }
   }
 }
 
 void StaticScope::MarkUsable(std::string_view name) {
   auto it = declared_names_.find(name);
-  CARBON_CHECK(it != declared_names_.end()) << name << " not found";
+  CARBON_CHECK(it != declared_names_.end(), "{0} not found", name);
   it->second.status = NameStatus::Usable;
+  if (trace_stream_->is_enabled()) {
+    trace_stream_->Result()
+        << "marked `" << name << "` usable in `" << PrintAsID(*this) << "`\n";
+  }
 }
 
 auto StaticScope::Resolve(std::string_view name,
@@ -94,20 +128,24 @@ auto StaticScope::TryResolveHere(std::string_view name,
   if (it == declared_names_.end()) {
     return {std::nullopt};
   }
-  if (allow_undeclared) {
+
+  auto exit_scope_function = llvm::make_scope_exit([&]() {
+    if (trace_stream_->is_enabled()) {
+      trace_stream_->Result()
+          << "resolved `" << name << "` as `" << it->second.entity << "` in `"
+          << PrintAsID(*this) << "` (" << source_loc << ")\n";
+    }
+  });
+
+  if (allow_undeclared || it->second.status == NameStatus::Usable) {
     return {it->second.entity};
   }
-  switch (it->second.status) {
-    case NameStatus::KnownButNotDeclared:
-      return ProgramError(source_loc)
-             << "'" << name << "' has not been declared yet";
-    case NameStatus::DeclaredButNotUsable:
-      return ProgramError(source_loc) << "'" << name
-                                      << "' is not usable until after it "
-                                         "has been completely declared";
-    case NameStatus::Usable:
-      return {it->second.entity};
-  }
+  return ProgramError(source_loc)
+         << "'" << name
+         << (it->second.status == NameStatus::KnownButNotDeclared
+                 ? "' has not been declared yet"
+                 : "' is not usable until after it has been completely "
+                   "declared");
 }
 
 auto StaticScope::AddReturnedVar(ValueNodeView returned_var_def_view)

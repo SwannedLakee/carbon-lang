@@ -2,6 +2,8 @@
 # Exceptions. See /LICENSE for license information.
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
 package(default_visibility = ["//explorer:__subpackages__"])
 
 cc_library(
@@ -39,6 +41,9 @@ cc_library(
         "value_node.h",
         "value_transform.h",
     ],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     textual_hdrs = [
         "value_kinds.def",
     ],
@@ -51,10 +56,12 @@ cc_library(
         "//common:error",
         "//common:indirect_value",
         "//common:ostream",
-        "//explorer/common:arena",
-        "//explorer/common:error_builders",
-        "//explorer/common:nonnull",
-        "//explorer/common:source_location",
+        "//explorer/base:arena",
+        "//explorer/base:decompose",
+        "//explorer/base:error_builders",
+        "//explorer/base:nonnull",
+        "//explorer/base:print_as_id",
+        "//explorer/base:source_location",
         "@llvm-project//llvm:Support",
     ],
 )
@@ -67,34 +74,45 @@ cc_library(
         "ast_test_matchers_internal.h",
     ],
     hdrs = ["ast_test_matchers.h"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
-        "@com_google_googletest//:gtest",
+        "@googletest//:gtest",
         "@llvm-project//llvm:Support",
     ],
 )
 
 cc_test(
     name = "ast_test_matchers_test",
+    size = "small",
     srcs = ["ast_test_matchers_test.cpp"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
         ":ast_test_matchers",
-        "//common:gtest_main",
-        "//explorer/common:arena",
-        "@com_google_googletest//:gtest",
+        "//explorer/base:arena",
+        "//testing/base:gtest_main",
+        "@googletest//:gtest",
     ],
 )
 
 cc_test(
     name = "expression_test",
+    size = "small",
     srcs = ["expression_test.cpp"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
         ":paren_contents",
-        "//common:gtest_main",
-        "//explorer/common:arena",
-        "@com_google_googletest//:gtest",
+        "//explorer/base:arena",
+        "//testing/base:gtest_main",
+        "@googletest//:gtest",
         "@llvm-project//llvm:Support",
     ],
 )
@@ -102,39 +120,53 @@ cc_test(
 cc_library(
     name = "library_name",
     hdrs = ["library_name.h"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
 )
 
 cc_library(
     name = "paren_contents",
     hdrs = ["paren_contents.h"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
-        "//explorer/common:error_builders",
-        "//explorer/common:source_location",
+        "//explorer/base:error_builders",
+        "//explorer/base:source_location",
     ],
 )
 
 cc_test(
     name = "element_test",
+    size = "small",
     srcs = ["element_test.cpp"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
         ":paren_contents",
-        "//common:gtest_main",
-        "//explorer/common:arena",
-        "@com_google_googletest//:gtest",
+        "//explorer/base:arena",
+        "//testing/base:gtest_main",
+        "@googletest//:gtest",
         "@llvm-project//llvm:Support",
     ],
 )
 
 cc_test(
     name = "pattern_test",
+    size = "small",
     srcs = ["pattern_test.cpp"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
         ":paren_contents",
-        "//common:gtest_main",
-        "//explorer/common:arena",
-        "@com_google_googletest//:gtest",
+        "//explorer/base:arena",
+        "//testing/base:gtest_main",
+        "@googletest//:gtest",
         "@llvm-project//llvm:Support",
     ],
 )
@@ -143,13 +175,19 @@ cc_library(
     name = "static_scope",
     srcs = ["static_scope.cpp"],
     hdrs = ["static_scope.h"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
     deps = [
         ":ast",
         "//common:check",
         "//common:error",
-        "//explorer/common:error_builders",
-        "//explorer/common:nonnull",
-        "//explorer/common:source_location",
+        "//common:ostream",
+        "//explorer/base:error_builders",
+        "//explorer/base:nonnull",
+        "//explorer/base:print_as_id",
+        "//explorer/base:source_location",
+        "//explorer/base:trace_stream",
         "@llvm-project//llvm:Support",
     ],
 )
@@ -157,4 +195,8 @@ cc_library(
 cc_library(
     name = "expression_category",
     hdrs = ["expression_category.h"],
+    # Running clang-tidy is slow, and explorer is currently feature frozen, so
+    # don't spend time linting it.
+    tags = ["no-clang-tidy"],
+    deps = ["@llvm-project//llvm:Support"],
 )

@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -11,8 +11,8 @@ interface A {
   fn T();
 }
 
-external impl i32 as A {
-  // CHECK:STDERR: SYNTAX ERROR: explorer/testdata/impl/fail_bad_member_kind.carbon:[[@LINE+1]]: syntax error, unexpected CLASS
+impl i32 as A {
+  // CHECK:STDERR: SYNTAX ERROR: fail_bad_member_kind.carbon:[[@LINE+1]]: syntax error, unexpected CLASS
   class T {}
 }
 

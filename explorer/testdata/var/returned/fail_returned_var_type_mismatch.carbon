@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn AddInt(a: i32, b: i32) -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/var/returned/fail_returned_var_type_mismatch.carbon:[[@LINE+1]]: type of returned var `bool` does not match return type `i32`
+  // CHECK:STDERR: COMPILATION ERROR: fail_returned_var_type_mismatch.carbon:[[@LINE+1]]: type of returned var `bool` does not match return type `i32`
   returned var ret: bool = true;
   return var;
 }

@@ -2,15 +2,14 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class LazyEq {
   var v1: i32;
   var v2: i32;
-  impl as ImplicitAs(bool) {
+  extend impl as ImplicitAs(bool) {
     fn Convert[self: Self]() -> bool {
       return self.v1 == self.v2;
     }
@@ -27,3 +26,5 @@ fn Main() -> i32 {
     return 2;
   }
 }
+
+// CHECK:STDOUT: result: 1

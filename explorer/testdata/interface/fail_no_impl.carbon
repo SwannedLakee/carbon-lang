@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -23,7 +23,7 @@ fn AddAndScaleGeneric[T:! Vector](a: T, b: T, s: i32) -> T {
 fn Main() -> i32 {
   var a: Point = {.x = 0, .y = 0};
   var b: Point = {.x = 2, .y = 3};
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/interface/fail_no_impl.carbon:[[@LINE+1]]: could not find implementation of interface Vector for class Point
+  // CHECK:STDERR: COMPILATION ERROR: fail_no_impl.carbon:[[@LINE+1]]: could not find implementation of interface Vector for class Point
   var p: Point = AddAndScaleGeneric(a, b, 3);
   return p.x - 6;
 }

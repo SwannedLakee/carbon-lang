@@ -2,13 +2,13 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 
 base class A {
-    // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/destructor/fail_override_impl_none.carbon:[[@LINE+1]]: Error declaring destructor for `A`: cannot override a destructor that is not declared `virtual` in base class.
+    // CHECK:STDERR: COMPILATION ERROR: fail_override_impl_none.carbon:[[@LINE+1]]: Error declaring destructor for `A`: cannot override a destructor that is not declared `virtual` in base class.
     impl destructor[self: Self]{}
 }
 

@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 2
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -11,7 +10,7 @@ interface HasAssoc {
   let Assoc:! type;
 }
 class X {
-  external impl as HasAssoc where .Assoc = i32 {}
+  impl as HasAssoc where .Assoc = i32 {}
 }
 
 alias WithoutRewrite = HasAssoc where .Assoc == i32;
@@ -27,3 +26,5 @@ fn Main() -> i32 {
   var x: X = {};
   return G(x);
 }
+
+// CHECK:STDOUT: result: 2

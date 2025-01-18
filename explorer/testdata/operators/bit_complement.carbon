@@ -2,14 +2,13 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: -6
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class A { var n: i32; }
 
-external impl A as BitComplement where .Result = A {
+impl A as BitComplement where .Result = A {
   fn Op[self: Self]() -> A { return {.n = ^self.n}; }
 }
 
@@ -18,3 +17,5 @@ fn Main() -> i32 {
   a = ^a;
   return a.n;
 }
+
+// CHECK:STDOUT: result: -6

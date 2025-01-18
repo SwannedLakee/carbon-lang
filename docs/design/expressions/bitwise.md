@@ -197,7 +197,7 @@ implementing the following family of interfaces:
 ```
 // Unary `^`.
 interface BitComplement {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self]() -> Result;
 }
 ```
@@ -205,55 +205,55 @@ interface BitComplement {
 ```
 // Binary `&`.
 interface BitAndWith(U:! type) {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self](other: U) -> Result;
 }
 constraint BitAnd {
-  extends BitAndWith(Self) where .Result = Self;
+  extend BitAndWith(Self) where .Result = Self;
 }
 ```
 
 ```
 // Binary `|`.
 interface BitOrWith(U:! type) {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self](other: U) -> Result;
 }
 constraint BitOr {
-  extends BitOrWith(Self) where .Result = Self;
+  extend BitOrWith(Self) where .Result = Self;
 }
 ```
 
 ```
 // Binary `^`.
 interface BitXorWith(U:! type) {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self](other: U) -> Result;
 }
 constraint BitXor {
-  extends BitXorWith(Self) where .Result = Self;
+  extend BitXorWith(Self) where .Result = Self;
 }
 ```
 
 ```
 // Binary `<<`.
 interface LeftShiftWith(U:! type) {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self](other: U) -> Result;
 }
 constraint LeftShift {
-  extends LeftShiftWith(Self) where .Result = Self;
+  extend LeftShiftWith(Self) where .Result = Self;
 }
 ```
 
 ```
 // Binary `>>`.
 interface RightShiftWith(U:! type) {
-  let Result:! type = Self;
+  default let Result:! type = Self;
   fn Op[self: Self](other: U) -> Result;
 }
 constraint RightShift {
-  extends RightShiftWith(Self) where .Result = Self;
+  extend RightShiftWith(Self) where .Result = Self;
 }
 ```
 

@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 __mixin Operations {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/mixin/fail_qualified_method.carbon:[[@LINE+1]]: qualified declaration names are not permitted in this context
+  // CHECK:STDERR: COMPILATION ERROR: fail_qualified_method.carbon:[[@LINE+1]]: qualified declaration names are not permitted in this context
   fn Operations.Square[self: Self](x:i32) -> i32{
     return x * x;
   }

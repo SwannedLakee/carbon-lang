@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDERR: RUNTIME ERROR: overflow:1: possible infinite loop: too many interpreter steps executed
+// NOAUTOUPDATE
 
 package ExplorerTest impl;
 
 fn Main() -> i32 {
+  // CHECK:STDERR: RUNTIME ERROR: fail_loop.carbon:[[@LINE+1]]: possible infinite loop: too many interpreter steps executed
   while (true) { }
   return 0;
 }

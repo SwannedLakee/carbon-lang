@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class Point(T:! type) {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/generic_class/fail_two_arg_lists.carbon:[[@LINE+1]]: in call `Point(T)(T)`, expected callee to be a function, found `type`
+  // CHECK:STDERR: COMPILATION ERROR: fail_two_arg_lists.carbon:[[@LINE+1]]: in call `Point(T)(T)`, expected callee to be a function, found `type`
   fn Origin(zero: T) -> Point(T)(T) {
     return {.x = zero, .y = zero};
   }

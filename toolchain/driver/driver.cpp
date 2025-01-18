@@ -4,256 +4,116 @@
 
 #include "toolchain/driver/driver.h"
 
-#include "common/vlog.h"
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/StringExtras.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/StringSwitch.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/Support/Error.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/Format.h"
-#include "toolchain/diagnostics/diagnostic_emitter.h"
-#include "toolchain/diagnostics/sorting_diagnostic_consumer.h"
-#include "toolchain/lexer/tokenized_buffer.h"
-#include "toolchain/lowering/lower_to_llvm.h"
-#include "toolchain/parser/parse_tree.h"
-#include "toolchain/semantics/semantics_ir.h"
-#include "toolchain/source/source_buffer.h"
+#include <algorithm>
+#include <memory>
+#include <optional>
+
+#include "common/command_line.h"
+#include "common/version.h"
+#include "toolchain/driver/clang_subcommand.h"
+#include "toolchain/driver/compile_subcommand.h"
+#include "toolchain/driver/format_subcommand.h"
+#include "toolchain/driver/language_server_subcommand.h"
+#include "toolchain/driver/link_subcommand.h"
 
 namespace Carbon {
 
 namespace {
+struct Options {
+  static const CommandLine::CommandInfo Info;
 
-enum class Subcommand {
-#define CARBON_SUBCOMMAND(Name, ...) Name,
-#include "toolchain/driver/flags.def"
-  Unknown,
+  auto Build(CommandLine::CommandBuilder& b) -> void;
+
+  bool verbose;
+  bool fuzzing;
+
+  ClangSubcommand clang;
+  CompileSubcommand compile;
+  FormatSubcommand format;
+  LanguageServerSubcommand language_server;
+  LinkSubcommand link;
+
+  // On success, this is set to the subcommand to run.
+  DriverSubcommand* selected_subcommand = nullptr;
 };
-
-auto GetSubcommand(llvm::StringRef name) -> Subcommand {
-  return llvm::StringSwitch<Subcommand>(name)
-#define CARBON_SUBCOMMAND(Name, Spelling, ...) .Case(Spelling, Subcommand::Name)
-#include "toolchain/driver/flags.def"
-      .Default(Subcommand::Unknown);
-}
-
 }  // namespace
 
-auto Driver::RunFullCommand(llvm::ArrayRef<llvm::StringRef> args) -> bool {
-  StreamDiagnosticConsumer stream_consumer(error_stream_);
-  DiagnosticConsumer* consumer = &stream_consumer;
-  std::unique_ptr<SortingDiagnosticConsumer> sorting_consumer;
-  // TODO: Figure out a command-line support library, this is temporary.
-  if (!args.empty() && args[0] == "-v") {
-    args = args.drop_front();
-    // Note this implies streamed output in order to interleave.
-    vlog_stream_ = &error_stream_;
-  } else if (!args.empty() && args[0] == "--print-errors=streamed") {
-    args = args.drop_front();
-  } else {
-    sorting_consumer = std::make_unique<SortingDiagnosticConsumer>(*consumer);
-    consumer = sorting_consumer.get();
-  }
+// Note that this is not constexpr so that it can include information generated
+// in separate translation units and potentially overridden at link time in the
+// version string.
+const CommandLine::CommandInfo Options::Info = {
+    .name = "carbon",
+    .version = Version::ToolchainInfo,
+    .help = R"""(
+This is the unified Carbon Language toolchain driver. Its subcommands provide
+all of the core behavior of the toolchain, including compilation, linking, and
+developer tools. Each of these has its own subcommand, and you can pass a
+specific subcommand to the `help` subcommand to get details about its usage.
+)""",
+    .help_epilogue = R"""(
+For questions, issues, or bug reports, please use our GitHub project:
 
-  if (args.empty()) {
-    error_stream_ << "ERROR: No subcommand specified.\n";
-    return false;
-  }
-
-  llvm::StringRef subcommand_text = args[0];
-  args = args.drop_front();
-  switch (GetSubcommand(subcommand_text)) {
-    case Subcommand::Unknown:
-      error_stream_ << "ERROR: Unknown subcommand '" << subcommand_text
-                    << "'.\n";
-      return false;
-
-#define CARBON_SUBCOMMAND(Name, ...) \
-  case Subcommand::Name:             \
-    return Run##Name##Subcommand(*consumer, args);
-#include "toolchain/driver/flags.def"
-  }
-  llvm_unreachable("All subcommands handled!");
-}
-
-auto Driver::RunHelpSubcommand(DiagnosticConsumer& /*consumer*/,
-                               llvm::ArrayRef<llvm::StringRef> args) -> bool {
-  // TODO: We should support getting detailed help on a subcommand by looking
-  // for it as a positional parameter here.
-  if (!args.empty()) {
-    ReportExtraArgs("help", args);
-    return false;
-  }
-
-  output_stream_ << "List of subcommands:\n\n";
-
-  constexpr llvm::StringLiteral SubcommandsAndHelp[][2] = {
-#define CARBON_SUBCOMMAND(Name, Spelling, HelpText) {Spelling, HelpText},
-#include "toolchain/driver/flags.def"
-  };
-
-  int max_subcommand_width = 0;
-  for (const auto* subcommand_and_help : SubcommandsAndHelp) {
-    max_subcommand_width = std::max(
-        max_subcommand_width, static_cast<int>(subcommand_and_help[0].size()));
-  }
-
-  for (const auto* subcommand_and_help : SubcommandsAndHelp) {
-    llvm::StringRef subcommand_text = subcommand_and_help[0];
-    // TODO: We should wrap this to the number of columns left after the
-    // subcommand on the terminal, and using a hanging indent.
-    llvm::StringRef help_text = subcommand_and_help[1];
-    output_stream_ << "  "
-                   << llvm::left_justify(subcommand_text, max_subcommand_width)
-                   << " - " << help_text << "\n";
-  }
-
-  output_stream_ << "\n";
-  return true;
-}
-
-enum class DumpMode {
-  TokenizedBuffer,
-  ParseTree,
-  SemanticsIR,
-  LLVMIR,
-  Unknown
+  https://github.com/carbon-language/carbon-lang
+)""",
 };
 
-auto Driver::RunDumpSubcommand(DiagnosticConsumer& consumer,
-                               llvm::ArrayRef<llvm::StringRef> args) -> bool {
-  if (args.empty()) {
-    error_stream_ << "ERROR: No dump mode specified.\n";
-    return false;
-  }
+auto Options::Build(CommandLine::CommandBuilder& b) -> void {
+  b.AddFlag(
+      {
+          .name = "verbose",
+          .short_name = "v",
+          .help = "Enable verbose logging to the stderr stream.",
+      },
+      [&](CommandLine::FlagBuilder& arg_b) { arg_b.Set(&verbose); });
 
-  auto dump_mode = llvm::StringSwitch<DumpMode>(args.front())
-                       .Case("tokens", DumpMode::TokenizedBuffer)
-                       .Case("parse-tree", DumpMode::ParseTree)
-                       .Case("semantics-ir", DumpMode::SemanticsIR)
-                       .Case("llvm-ir", DumpMode::LLVMIR)
-                       .Default(DumpMode::Unknown);
-  if (dump_mode == DumpMode::Unknown) {
-    error_stream_ << "ERROR: Dump mode should be one of tokens, parse-tree, or "
-                     "semantics-ir.\n";
-    return false;
-  }
-  args = args.drop_front();
+  b.AddFlag(
+      {
+          .name = "fuzzing",
+          .help = "Configure the command line for fuzzing.",
+      },
+      [&](CommandLine::FlagBuilder& arg_b) { arg_b.Set(&fuzzing); });
 
-  bool parse_tree_preorder = false;
-  if (dump_mode == DumpMode::ParseTree && !args.empty() &&
-      args.front() == "--preorder") {
-    args = args.drop_front();
-    parse_tree_preorder = true;
-  }
+  clang.AddTo(b, &selected_subcommand);
+  compile.AddTo(b, &selected_subcommand);
+  format.AddTo(b, &selected_subcommand);
+  language_server.AddTo(b, &selected_subcommand);
+  link.AddTo(b, &selected_subcommand);
 
-  bool semantics_ir_include_builtins = false;
-  if (dump_mode == DumpMode::SemanticsIR && !args.empty() &&
-      args.front() == "--include_builtins") {
-    args = args.drop_front();
-    semantics_ir_include_builtins = true;
-  }
-
-  if (args.empty()) {
-    error_stream_ << "ERROR: No input file specified.\n";
-    return false;
-  }
-
-  llvm::StringRef input_file_name = args.front();
-  args = args.drop_front();
-  if (!args.empty()) {
-    ReportExtraArgs("dump", args);
-    return false;
-  }
-
-  CARBON_VLOG() << "*** SourceBuffer::CreateFromFile ***\n";
-  auto source = SourceBuffer::CreateFromFile(input_file_name);
-  CARBON_VLOG() << "*** SourceBuffer::CreateFromFile done ***\n";
-  if (!source) {
-    error_stream_ << "ERROR: Unable to open input source file: ";
-    llvm::handleAllErrors(source.takeError(),
-                          [&](const llvm::ErrorInfoBase& ei) {
-                            ei.log(error_stream_);
-                            error_stream_ << "\n";
-                          });
-    return false;
-  }
-
-  bool has_errors = false;
-
-  CARBON_VLOG() << "*** TokenizedBuffer::Lex ***\n";
-  auto tokenized_source = TokenizedBuffer::Lex(*source, consumer);
-  has_errors |= tokenized_source.has_errors();
-  CARBON_VLOG() << "*** TokenizedBuffer::Lex done ***\n";
-  if (dump_mode == DumpMode::TokenizedBuffer) {
-    CARBON_VLOG() << "Finishing output.";
-    consumer.Flush();
-    output_stream_ << tokenized_source;
-    return !has_errors;
-  }
-  CARBON_VLOG() << "tokenized_buffer: " << tokenized_source;
-
-  CARBON_VLOG() << "*** ParseTree::Parse ***\n";
-  auto parse_tree = ParseTree::Parse(tokenized_source, consumer, vlog_stream_);
-  has_errors |= parse_tree.has_errors();
-  CARBON_VLOG() << "*** ParseTree::Parse done ***\n";
-  if (dump_mode == DumpMode::ParseTree) {
-    consumer.Flush();
-    parse_tree.Print(output_stream_, parse_tree_preorder);
-    return !has_errors;
-  }
-  CARBON_VLOG() << "parse_tree: " << parse_tree;
-
-  const SemanticsIR builtin_ir = SemanticsIR::MakeBuiltinIR();
-  CARBON_VLOG() << "*** SemanticsIR::MakeFromParseTree ***\n";
-  const SemanticsIR semantics_ir = SemanticsIR::MakeFromParseTree(
-      builtin_ir, tokenized_source, parse_tree, consumer, vlog_stream_);
-  has_errors |= semantics_ir.has_errors();
-  CARBON_VLOG() << "*** SemanticsIR::MakeFromParseTree done ***\n";
-  if (dump_mode == DumpMode::SemanticsIR) {
-    consumer.Flush();
-    semantics_ir.Print(output_stream_, semantics_ir_include_builtins);
-    return !has_errors;
-  }
-  CARBON_VLOG() << "semantics_ir: " << semantics_ir;
-
-  // Unlike previous steps, errors block further progress.
-  if (has_errors) {
-    CARBON_VLOG() << "Unable to dump llvm-ir due to prior errors.";
-    return false;
-  }
-
-  CARBON_VLOG() << "*** LowerToLLVM ***\n";
-  llvm::LLVMContext llvm_context;
-  const std::unique_ptr<llvm::Module> module =
-      LowerToLLVM(llvm_context, input_file_name, semantics_ir);
-  CARBON_VLOG() << "*** LowerToLLVM done ***\n";
-  if (dump_mode == DumpMode::LLVMIR) {
-    consumer.Flush();
-    module->print(output_stream_, /*AAW=*/nullptr,
-                  /*ShouldPreserveUseListOrder=*/true);
-    return !has_errors;
-  }
-  if (vlog_stream_) {
-    CARBON_VLOG() << "module: ";
-    module->print(*vlog_stream_, /*AAW=*/nullptr,
-                  /*ShouldPreserveUseListOrder=*/false,
-                  /*IsForDebug=*/true);
-  }
-
-  llvm_unreachable("should handle all dump modes");
+  b.RequiresSubcommand();
 }
 
-auto Driver::ReportExtraArgs(llvm::StringRef subcommand_text,
-                             llvm::ArrayRef<llvm::StringRef> args) -> void {
-  error_stream_ << "ERROR: Unexpected additional arguments to the '"
-                << subcommand_text << "' subcommand:";
-  for (auto arg : args) {
-    error_stream_ << " " << arg;
+auto Driver::RunCommand(llvm::ArrayRef<llvm::StringRef> args) -> DriverResult {
+  if (driver_env_.installation->error()) {
+    driver_env_.error_stream << "error: " << *driver_env_.installation->error()
+                             << "\n";
+    return {.success = false};
   }
 
-  error_stream_ << "\n";
+  Options options;
+
+  ErrorOr<CommandLine::ParseResult> result = CommandLine::Parse(
+      args, driver_env_.output_stream, Options::Info,
+      [&](CommandLine::CommandBuilder& b) { options.Build(b); });
+
+  if (!result.ok()) {
+    driver_env_.error_stream << "error: " << result.error() << "\n";
+    return {.success = false};
+  } else if (*result == CommandLine::ParseResult::MetaSuccess) {
+    return {.success = true};
+  }
+
+  if (options.verbose) {
+    // Note this implies streamed output in order to interleave.
+    driver_env_.vlog_stream = &driver_env_.error_stream;
+  }
+  if (options.fuzzing) {
+    SetFuzzing();
+  }
+
+  CARBON_CHECK(options.selected_subcommand != nullptr);
+  return options.selected_subcommand->Run(driver_env_);
 }
+
+auto Driver::SetFuzzing() -> void { driver_env_.fuzzing = true; }
 
 }  // namespace Carbon

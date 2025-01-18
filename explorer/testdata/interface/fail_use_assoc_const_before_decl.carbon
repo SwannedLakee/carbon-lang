@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 interface IFace {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/interface/fail_use_assoc_const_before_decl.carbon:[[@LINE+1]]: 'C' has not been declared yet
+  // CHECK:STDERR: COMPILATION ERROR: fail_use_assoc_const_before_decl.carbon:[[@LINE+1]]: 'C' has not been declared yet
   let B:! C;
   let C:! IFace;
 }

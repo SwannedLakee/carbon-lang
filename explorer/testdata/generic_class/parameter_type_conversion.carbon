@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 4
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -14,7 +13,7 @@ class Holder(N:! i32) {
 }
 
 class IntLike {
-  impl as ImplicitAs(i32) {
+  extend impl as ImplicitAs(i32) {
     fn Convert[self: Self]() -> i32 { return 4; }
   }
   fn Make() -> IntLike { return {}; }
@@ -23,3 +22,5 @@ class IntLike {
 fn Main() -> i32 {
   return Holder(IntLike.Make()).Get();
 }
+
+// CHECK:STDOUT: result: 4

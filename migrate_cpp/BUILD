@@ -2,6 +2,9 @@
 # Exceptions. See /LICENSE for license information.
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_python//python:defs.bzl", "py_binary")
+
 py_binary(
     name = "migrate_cpp",
     srcs = ["migrate_cpp.py"],
@@ -44,11 +47,12 @@ cc_library(
 
 cc_test(
     name = "rewriter_test",
+    size = "small",
     srcs = ["rewriter_test.cpp"],
     deps = [
         ":rewriter",
-        "//common:gtest_main",
-        "@com_google_googletest//:gtest",
+        "//testing/base:gtest_main",
+        "@googletest//:gtest",
         "@llvm-project//clang:ast",
         "@llvm-project//clang:frontend",
         "@llvm-project//clang:tooling",

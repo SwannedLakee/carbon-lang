@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn CompareStr(s: String) -> i32 {
-  // CHECK:STDERR: SYNTAX ERROR: explorer/testdata/string/fail_raw_more_hash_tags_on_right.carbon:[[@LINE+1]]: invalid character '\x23' in source file.
+  // CHECK:STDERR: SYNTAX ERROR: fail_raw_more_hash_tags_on_right.carbon:[[@LINE+1]]: invalid character '\x23' in source file.
   if (s == "str"#) {
     return 0;
   }

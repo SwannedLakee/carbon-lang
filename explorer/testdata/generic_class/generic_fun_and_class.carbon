@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -29,7 +28,7 @@ fn SumXY[U :! Number](other: Point(U)) -> U {
   return other.x.Add(other.y);
 }
 
-external impl i32 as Number {
+impl i32 as Number {
   fn Zero() -> i32 { return 0; }
   fn Add[self: i32](other: i32) -> i32 { return self + other; }
 }
@@ -38,3 +37,5 @@ fn Main() -> i32 {
   var p: Point(i32) = Origin(0);
   return SumXY(Clone(p));
 }
+
+// CHECK:STDOUT: result: 0

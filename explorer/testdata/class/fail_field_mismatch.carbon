@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -12,7 +12,7 @@ class Point {
 }
 
 fn Main() -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/class/fail_field_mismatch.carbon:[[@LINE+1]]: type error in initializer of variable: '{.x: i32, .z: i32}' is not implicitly convertible to 'class Point'
+  // CHECK:STDERR: COMPILATION ERROR: fail_field_mismatch.carbon:[[@LINE+1]]: type error in initializer of variable: '{.x: i32, .z: i32}' is not implicitly convertible to 'class Point'
   var p: Point = {.x = 1, .z = 2};
   return p.x - 1;
 }

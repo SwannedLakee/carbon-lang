@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -12,7 +12,7 @@ __mixin Operations {
   }
 }
 
-// CHECK:STDERR: SYNTAX ERROR: explorer/testdata/mixin/fail_mix_in_global.carbon:[[@LINE+1]]: syntax error, unexpected MIX, expecting END_OF_FILE
+// CHECK:STDERR: SYNTAX ERROR: fail_mix_in_global.carbon:[[@LINE+1]]: syntax error, unexpected MIX, expecting END_OF_FILE
 __mix Operations;
 
 class Point {

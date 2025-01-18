@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -20,7 +19,7 @@ fn B[T:! Container where .Element == i32](x: T) -> T.Element {
   return A(x);
 }
 
-external impl (i32, i32) as Container where .Element = i32 {
+impl (i32, i32) as Container where .Element = i32 {
   fn Front[self: Self]() -> i32 {
     let (a: i32, b: i32) = self;
     return a;
@@ -30,3 +29,5 @@ external impl (i32, i32) as Container where .Element = i32 {
 fn Main() -> i32 {
   return B((1, 2));
 }
+
+// CHECK:STDOUT: result: 1

@@ -2,13 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 42
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class A {
-  impl as ImplicitAs(i32) {
+  extend impl as ImplicitAs(i32) {
     fn Convert[self: Self]() -> i32 { return 42; }
   }
 }
@@ -17,3 +16,5 @@ fn Main() -> i32 {
   var a: A = {};
   return a;
 }
+
+// CHECK:STDOUT: result: 42

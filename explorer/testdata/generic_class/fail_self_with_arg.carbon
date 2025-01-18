@@ -2,14 +2,14 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class Point(T:! type) {
 
   // Error: wrote `Self(T)` instead of `Self`.
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/generic_class/fail_self_with_arg.carbon:[[@LINE+1]]: in call `Self(T)`, expected callee to be a function, found `type`
+  // CHECK:STDERR: COMPILATION ERROR: fail_self_with_arg.carbon:[[@LINE+1]]: in call `Self(T)`, expected callee to be a function, found `type`
   fn Origin(zero: T) -> Self(T) {
     return {.x = zero, .y = zero};
   }

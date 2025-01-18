@@ -45,11 +45,11 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
     -   [Alias](#alias)
     -   [Inheritance](#inheritance)
         -   [Virtual methods](#virtual-methods)
-            -   [Virtual override keywords](#virtual-override-keywords)
+            -   [Virtual modifier keywords](#virtual-modifier-keywords)
         -   [Subtyping](#subtyping)
         -   [`Self` refers to the current type](#self-refers-to-the-current-type)
         -   [Constructors](#constructors)
-            -   [Partial facet](#partial-facet)
+            -   [Partial class type](#partial-class-type)
             -   [Usage](#usage)
         -   [Assignment with inheritance](#assignment-with-inheritance)
     -   [Destructors](#destructors)
@@ -311,8 +311,8 @@ implemented in descendants.
 While it is typical for this case to be associated with single-level inheritance
 hierarchies, there are some cases where there is an interface at the root of a
 type hierarchy and polymorphic types as interior branches of the tree. The case
-of generic interfaces extending or requiring other interface would also be
-modeled by deeper inheritance hierarchies.
+of interfaces extending or requiring other interface would also be modeled by
+deeper inheritance hierarchies.
 
 An interface as base class needs to either have a virtual destructor or forbid
 deallocation.
@@ -325,7 +325,7 @@ that support dynamic dispatch are called _object-safe_, following
 
 -   They don't have a `Self` in the signature of a method in a contravariant
     position like a parameter.
--   They don't have free associated types or other associated items used in a
+-   They don't have free associated facets or other associated items used in a
     method signature.
 
 The restrictions on object-safe interfaces match the restrictions on base class
@@ -684,7 +684,6 @@ The declarations for nominal class types will have:
 -   an optional `abstract` or `base` prefix
 -   `class` introducer
 -   the name of the class
--   an optional `extends` followed by the name of the immediate base class
 -   `{`, an open curly brace
 -   a sequence of declarations
 -   `}`, a close curly brace
@@ -712,9 +711,9 @@ determined at compile time.
 To support circular references between class types, we allow
 [forward declaration](https://en.wikipedia.org/wiki/Forward_declaration) of
 types. Forward declarations end with semicolon `;` after the name of the class,
-instead of any `extends` clause and the block of declarations in curly braces
-`{`...`}`. A type that is forward declared is considered incomplete until the
-end of a definition with the same name.
+instead of the block of declarations in curly braces `{`...`}`. A type that is
+forward declared is considered incomplete until the end of a definition with the
+same name.
 
 ```
 // Forward declaration of `GraphNode`.
@@ -905,13 +904,13 @@ Assert(Math.Abs(c.Diameter() - 4.0) < 0.001);
 -   `c.Expand(`...`)` does modify the value of `c`. This is signified using
     `[addr self: Self*]` in the method declaration.
 
-The pattern '`addr` _patt_' means "first take the address of the argument, which
-must be an
+The pattern '`addr self:` _type_' means "first take the address of the argument,
+which must be an
 [l-value](<https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue>), and
-then match pattern _patt_ against it".
+then match pattern '`self:` _type_' against it".
 
 If the method declaration also includes
-[deduced generic parameters](/docs/design/generics/overview.md#deduced-parameters),
+[deduced compile-time parameters](/docs/design/generics/overview.md#deduced-parameters),
 the `self` parameter must be in the same list in square brackets `[`...`]`. The
 `self` parameter may appear in any position in that list, as long as it appears
 after any names needed to describe its type.
@@ -930,7 +929,7 @@ class Point {
     return Math.Sqrt(self.x * self.x + self.y * self.y);
   }
 
-  fn Create(x: f32, y: f32) -> Point {
+  fn Make(x: f32, y: f32) -> Point {
     return {.x = x, .y = y};
   }
 
@@ -944,7 +943,7 @@ These are all parsed as if they were defined outside the class scope:
 ```carbon
 class Point {
   fn Distance[self: Self]() -> f32;
-  fn Create(x: f32, y: f32) -> Point;
+  fn Make(x: f32, y: f32) -> Point;
 
   var x: f32;
   var y: f32;
@@ -954,7 +953,7 @@ fn Point.Distance[self: Self]() -> f32 {
   return Math.Sqrt(self.x * self.x + self.y * self.y);
 }
 
-fn Point.Create(x: f32, y: f32) -> Point {
+fn Point.Make(x: f32, y: f32) -> Point {
   return {.x = x, .y = y};
 }
 ```
@@ -988,14 +987,14 @@ class Square {
 
   fn GetDoubled[self: Self]() -> Square {
     // ✅ OK: performs name lookup on `Square` for `Create`.
-    return Square.Create(self.size);
+    return Square.Make(self.size);
     // ✅ OK: performs unqualified name lookup within class scope for `Create`.
-    return Create(self.size);
+    return Make(self.size);
     // ✅ OK: performs name lookup on `self` for `Create`.
-    return self.Create(self.size);
+    return self.Make(self.size);
   }
 
-  fn Create(size: f32) -> Square;
+  fn Make(size: f32) -> Square;
 
   var size: f32;
 }
@@ -1132,9 +1131,16 @@ base class MyBaseClass { ... }
 A _base class_ may be _extended_ to get a _derived class_:
 
 ```
-base class MiddleDerived extends MyBaseClass { ... }
-class FinalDerived extends MiddleDerived { ... }
-// ❌ Forbidden: class Illegal extends FinalDerived { ... }
+base class MiddleDerived {
+  extend base: MyBaseClass;
+  ...
+}
+class FinalDerived {
+  extend base: MiddleDerived;
+  ...
+}
+// ❌ Forbidden: class Illegal { extend base: FinalDerived; ... }
+// may not extend `FinalDerived` since not declared `base` or `abstract`.
 ```
 
 An _[abstract class](https://en.wikipedia.org/wiki/Abstract_type)_ or _abstract
@@ -1168,17 +1174,17 @@ methods whose implementation may be overridden in a derived class.
 
 Only methods defined in the scope of the class definition may be virtual, not
 any defined in
-[external interface `impl` declarations](/docs/design/generics/details.md#external-impl).
+[out-of-line interface `impl` declarations](/docs/design/generics/details.md#out-of-line-impl).
 Interface methods may be implemented using virtual methods when the
-[impl is internal](/docs/design/generics/details.md#implementing-interfaces),
-and calls to those methods by way of the interface will do virtual dispatch just
-like a direct call to the method does.
+[impl is inline](/docs/design/generics/details.md#inline-impl), and calls to
+those methods by way of the interface will do virtual dispatch just like a
+direct call to the method does.
 
 [Class functions](#class-functions) may not be declared virtual.
 
-##### Virtual override keywords
+##### Virtual modifier keywords
 
-A method is declared as virtual by using a _virtual override keyword_ in its
+A method is declared as virtual by using a _virtual modifier keyword_ in its
 declaration before `fn`.
 
 ```
@@ -1198,7 +1204,7 @@ _non-virtual_. This means:
 -   they have an implementation in the current class, and that implementation
     must work for all derived classes.
 
-There are three virtual override keywords:
+There are three virtual modifier keywords:
 
 -   `virtual` - This marks a method as not present in bases of this class and
     having an implementation in this class. That implementation may be
@@ -1218,11 +1224,17 @@ There are three virtual override keywords:
     doesn't match the base class. We intentionally use the same keyword here as
     for implementing interfaces, to emphasize that they are similar operations.
 
-| Keyword on<br />method in `C` | Allowed in<br />`abstract class C` | Allowed in<br />`base class C` | Allowed in<br />final `class C` | in `B` where<br />`C extends B`                          | in `D` where<br />`D extends C`                                                  |
+| Keyword on<br />method in `C` | Allowed in<br />`abstract class C` | Allowed in<br />`base class C` | Allowed in<br />final `class C` | in `B` where<br />`C` extends `B`                        | in `D` where<br />`D` extends `C`                                                |
 | ----------------------------- | ---------------------------------- | ------------------------------ | ------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `virtual`                     | ✅                                 | ✅                             | ❌                              | _not present_                                            | `abstract`<br />`impl`<br />_not mentioned_                                      |
 | `abstract`                    | ✅                                 | ❌                             | ❌                              | _not present_<br />`virtual`<br />`abstract`<br />`impl` | `abstract`<br />`impl`<br />_may not be<br />mentioned if<br />`D` is not final_ |
 | `impl`                        | ✅                                 | ✅                             | ✅                              | `virtual`<br />`abstract`<br />`impl`                    | `abstract`<br />`impl`                                                           |
+
+Since validating a method with a virtual modifier keyword involves looking for
+methods with the same name in the base class, virtual methods must be declared
+after the `extend base` declaration when present in a class definition. This
+simplifies the compiler, and follows the
+[information accumulation principle](/docs/project/principles/information_accumulation.md).
 
 #### Subtyping
 
@@ -1240,11 +1252,16 @@ or _vtable_. Any calls to virtual methods will perform
 the method using the function pointer in the vtable, to get the overridden
 implementation from the most derived class that implements the method.
 
+This data layout is reflected in the order of declarations in a class
+definition. An `extend base` declaration, when present in a class definition,
+must appear before any other declarations adding data to the class instances,
+such as instance variables.
+
 Since a final class may not be extended, the compiler can bypass the vtable and
 use [static dispatch](https://en.wikipedia.org/wiki/Static_dispatch). In
 general, you can use a combination of an abstract base class and a final class
-instead of an extensible class if you need to distinguish between exactly a type
-and possibly a subtype.
+instead of an extensible class if you need to distinguish between "exactly a
+type" and "possibly a subtype."
 
 ```
 base class Extensible { ... }
@@ -1252,7 +1269,10 @@ base class Extensible { ... }
 // Can be replaced by:
 
 abstract class ExtensibleBase { ... }
-class ExactlyExtensible extends ExtensibleBase { ... }
+class ExactlyExtensible {
+  extend base: ExtensibleBase;
+  ...
+}
 ```
 
 #### `Self` refers to the current type
@@ -1269,7 +1289,8 @@ base class B1 {
   //   virtual fn F[self: B1](x: B1) -> B1;
 }
 
-class D1 extends B1 {
+class D1 {
+  extend base: B1;
   // ❌ Illegal:
   //   impl fn F[self: Self](x: Self) -> Self;
   // since that would mean the same thing as:
@@ -1294,7 +1315,8 @@ base class B2 {
   //   virtual fn Clone[self: B2]() -> B2*;
 }
 
-class D2 extends B2 {
+class D2 {
+  extend base: B2;
   // ✅ Allowed
   impl fn Clone[self: Self]() -> Self*;
   // Means the same thing as:
@@ -1320,9 +1342,10 @@ type, this time with a `.base` member to initialize the members of the immediate
 base type.
 
 ```
-class MyDerivedType extends MyBaseType {
-  fn Create() -> MyDerivedType {
-    return {.base = MyBaseType.Create(), .derived_field = ...};
+class MyDerivedType {
+  extend base: MyBaseType;
+  fn Make() -> MyDerivedType {
+    return {.base = MyBaseType.Make(), .derived_field = ...};
   }
 }
 ```
@@ -1338,17 +1361,17 @@ There are two cases that aren't well supported with this pattern:
 
 While expected to be relatively rarely needed, we will address both of these
 concerns with a specialized type just used during construction of base classes,
-called the partial facet type for the class.
+called the partial class type for the class.
 
-##### Partial facet
+##### Partial class type
 
-The partial facet for a base class type like `MyBaseType` is written
+The partial class type for a base class type like `MyBaseType` is written
 `partial MyBaseType`.
 
--   Only methods that take the partial facet type may be called on the partial
-    facet type, so methods have to opt in to being called on an object that
+-   Only methods that take the partial class type may be called on the partial
+    class type, so methods have to opt in to being called on an object that
     isn't fully constructed.
--   No virtual methods may take the partial facet type, so there is no way to
+-   No virtual methods may take the partial class type, so there is no way to
     transitively call a virtual method on an object that isn't fully
     constructed.
 -   `partial MyBaseClass` and `MyBaseClass` have the same fields in the same
@@ -1380,34 +1403,35 @@ The partial facet for a base class type like `MyBaseType` is written
 ##### Usage
 
 The general pattern is that base classes can define constructors returning the
-partial facet type.
+partial class type.
 
 ```
 base class MyBaseClass {
-  fn Create() -> partial Self {
+  fn Make() -> partial Self {
     return {.base_field_1 = ..., .base_field_2 = ...};
   }
   // ...
 }
 ```
 
-Extensible classes can be instantiated even from a partial facet value:
+Extensible classes can be instantiated even from a partial class type value:
 
 ```
-var mbc: MyBaseClass = MyBaseClass.Create();
+var mbc: MyBaseClass = MyBaseClass.Make();
 ```
 
 The conversion from `partial MyBaseClass` to `MyBaseClass` only fills in the
 vptr value and can be done in place. After the conversion, all public methods
 may be called, including virtual methods.
 
-The partial facet is required for abstract classes, since otherwise they may not
-be instantiated. Constructor functions for abstract classes should be marked
-[protected](#protected-access) so they may only be accessed in derived classes.
+The partial class type is required for abstract classes, since otherwise they
+may not be instantiated. Constructor functions for abstract classes should be
+marked [protected](#protected-access) so they may only be accessed in derived
+classes.
 
 ```
 abstract class MyAbstractClass {
-  protected fn Create() -> partial Self {
+  protected fn Make() -> partial Self {
     return {.base_field_1 = ..., .base_field_2 = ...};
   }
   // ...
@@ -1419,11 +1443,12 @@ var abc: MyAbstractClass = ...;
 If a base class wants to store a pointer to itself somewhere in the constructor
 function, there are two choices:
 
--   An extensible class could use the plain type instead of the partial facet.
+-   An extensible class could use the plain type instead of the partial class
+    type.
 
     ```
     base class MyBaseClass {
-      fn Create() -> Self {
+      fn Make() -> Self {
         returned var result: Self = {...};
         StoreMyPointerSomewhere(&result);
         return var;
@@ -1437,7 +1462,7 @@ function, there are two choices:
 
     ```
     abstract class MyAbstractClass {
-      protected fn Create() -> partial Self {
+      protected fn Make() -> partial Self {
         returned var result: partial Self = {...};
         // Careful! Pointer to object that isn't fully constructed!
         StoreMyPointerSomewhere(&result as Self*);
@@ -1446,54 +1471,57 @@ function, there are two choices:
     }
     ```
 
-The constructor for a derived class may construct values from a partial facet of
-the class' immediate base type or the full type:
+The constructor for a derived class may construct values from a partial class
+type of the class' immediate base type or the full type:
 
 ```
 abstract class MyAbstractClass {
-  protected fn Create() -> partial Self { ... }
+  protected fn Make() -> partial Self { ... }
 }
 
 // Base class returns a partial type
-base class Derived extends MyAbstractClass {
-  protected fn Create() -> partial Self {
-    return {.base = MyAbstractClass.Create(), .derived_field = ...};
+base class Derived {
+  extend base: MyAbstractClass;
+  protected fn Make() -> partial Self {
+    return {.base = MyAbstractClass.Make(), .derived_field = ...};
   }
   ...
 }
 
 base class MyBaseClass {
-  fn Create() -> Self { ... }
+  fn Make() -> Self { ... }
 }
 
 // Base class returns a full type
-base class ExtensibleDerived extends MyBaseClass {
-  fn Create() -> Self {
-    return {.base = MyBaseClass.Create(), .derived_field = ...};
+base class ExtensibleDerived {
+  extend base: MyBaseClass;
+  fn Make() -> Self {
+    return {.base = MyBaseClass.Make(), .derived_field = ...};
   }
   ...
 }
 ```
 
-And final classes will return a type that does not use the partial facet:
+And final classes will return a type that does not use the partial class type:
 
 ```
-class FinalDerived extends MiddleDerived {
-  fn Create() -> Self {
-    return {.base = MiddleDerived.Create(), .derived_field = ...};
+class FinalDerived {
+  extend base: MiddleDerived;
+  fn Make() -> Self {
+    return {.base = MiddleDerived.Make(), .derived_field = ...};
   }
   ...
 }
 ```
 
 Observe that the vptr is only assigned twice in release builds if you use
-partial facets:
+partial class types:
 
 -   The first class value created, by the factory function creating the base of
     the class hierarchy, initialized the vptr field to nullptr. Every derived
     type transitively created from that value will leave it alone.
 -   Only when the value has its most-derived class and is converted from the
-    partial facet type to its final type is the vptr field set to its final
+    partial class type to its final type is the vptr field set to its final
     value.
 
 In the case that the base class can be instantiated, tooling could optionally
@@ -1572,14 +1600,15 @@ base class MyBaseClass {
   virtual destructor [addr self: Self*] { ... }
 }
 
-class MyDerivedClass extends MyBaseClass {
+class MyDerivedClass {
+  extend base: MyBaseClass;
   impl destructor [addr self: Self*] { ... }
 }
 ```
 
 The properties of a type, whether type is abstract, base, or final, and whether
 the destructor is virtual or non-virtual, determines which
-[type-of-types](/docs/design/generics/terminology.md#type-of-type) it satisfies.
+[facet types](/docs/design/generics/terminology.md#facet-type) it satisfies.
 
 -   Non-abstract classes are `Concrete`. This means you can create local and
     member variables of this type. `Concrete` types have destructors that are
@@ -1607,9 +1636,9 @@ conform to the decision on
 | final    | any         | yes        | yes         | yes            |
 
 The compiler automatically determines which of these
-[type-of-types](/docs/design/generics/terminology.md#type-of-type) a given type
+[facet types](/docs/design/generics/terminology.md#facet-type) a given type
 satisfies. It is illegal to directly implement `Concrete`, `Deletable`, or
-`Destructible` directly. For more about these constraints, see
+`Destructible`. For more about these constraints, see
 ["destructor constraints" in the detailed generics design](/docs/design/generics/details.md#destructor-constraints).
 
 A pointer to `Deletable` types may be passed to the `Delete` method of the
@@ -1628,12 +1657,14 @@ interface Allocator {
 }
 ```
 
-To pass a pointer to a base class without a virtual destructor to a generic
-function expecting a `Deletable` type, use the `UnsafeAllowDelete`
+To pass a pointer to a base class without a virtual destructor to a
+checked-generic function expecting a `Deletable` type, use the
+`UnsafeAllowDelete`
 [type adapter](/docs/design/generics/details.md#adapting-types).
 
 ```
-adapter UnsafeAllowDelete(T:! Concrete) extends T {
+class UnsafeAllowDelete(T:! Concrete) {
+  extend adapt T;
   impl as Deletable {}
 }
 
@@ -1653,7 +1684,7 @@ and not implemented in the current class.
 
 Types satisfy the
 [`TrivialDestructor`](/docs/design/generics/details.md#destructor-constraints)
-type-of-type if:
+facet type if:
 
 -   the class declaration does not define a destructor or the class defines the
     destructor with an empty body `{ }`,
@@ -1693,7 +1724,7 @@ declaration. Access modifiers are how Carbon supports
 [encapsulation](#encapsulated-types).
 
 The [access modifier](https://en.wikipedia.org/wiki/Access_modifiers) is written
-before any [virtual override keyword](#virtual-override-keywords).
+before any [virtual modifier keyword](#virtual-modifier-keywords).
 
 **Rationale:** Carbon makes members public by default for a few reasons:
 
@@ -1777,7 +1808,8 @@ base class MyBaseClass {
   protected var data: i32;
 }
 
-class MyDerivedClass extends MyBaseClass {
+class MyDerivedClass {
+  extend base: MyBaseClass;
   fn UsesProtected[addr self: Self*]() {
     // Can access protected members in derived class
     var x: i32 = HelperClassFunction(3);
@@ -1931,11 +1963,11 @@ We want four things so that Carbon's object-safe interfaces may interoperate
 with C++ abstract base classes without data members, matching the
 [interface as base class use case](#interface-as-base-class):
 
--   Ability to convert an object-safe interface (a type-of-type) into an
+-   Ability to convert an object-safe interface (a facet type) into an
     C++-compatible base class (a base type), maybe using
     `AsBaseClass(MyInterface)`.
 -   Ability to convert a C++ base class without data members (a base type) into
-    an object-safe interface (a type-of-type), maybe using `AsInterface(MyIBC)`.
+    an object-safe interface (a facet type), maybe using `AsInterface(MyIBC)`.
 -   Ability to convert a (thin) pointer to an abstract base class to a `DynPtr`
     of the corresponding interface.
 -   Ability to convert `DynPtr(MyInterface)` values to a proxy type that extends
@@ -1975,9 +2007,10 @@ There are some opportunities to improve on and simplify the C++ story:
 This design directly supports Carbon classes inheriting from a single C++ class.
 
 ```
-class CarbonClass extends C++.CPlusPlusClass {
-  fn Create() -> Self {
-    return {.base = C++.CPlusPlusClass(...), .other_fields = ...};
+class CarbonClass {
+  extend base: Cpp.CPlusPlusClass;
+  fn Make() -> Self {
+    return {.base = Cpp.CPlusPlusClass(...), .other_fields = ...};
   }
   ...
 }
@@ -1996,7 +2029,7 @@ C++ constructors to initialize their base class:
     class Base {
     public:
         virtual ~Base() {}
-        static auto Create() -> Base;
+        static auto Make() -> Base;
     };
 
     // In C++
@@ -2008,7 +2041,7 @@ C++ constructors to initialize their base class:
         // there appear to be implementation challenges with
         // removing them. This may require an extension to make work
         // reliably without an extraneous copy of the base subobject.
-        Derived() : Base(Base::Create()) {}
+        Derived() : Base(Base::Make()) {}
     };
     ```
 
@@ -2117,7 +2150,7 @@ implications:
 However, there are likely to be differences between computed properties and
 other data members, such as the ability to take the address of them. We might
 want to support "read only" data members, that can be read through the public
-api but only modified with private access, for data members which may need to
+API but only modified with private access, for data members which may need to
 evolve into a computed property. There are also questions regarding how to
 support assigning or modifying computed properties, such as using `+=`.
 
@@ -2132,7 +2165,7 @@ interface ConstructWidgetFrom {
   fn Construct(Self) -> Widget;
 }
 
-external impl {.kind: WidgetKind, .size: i32}
+impl {.kind: WidgetKind, .size: i32}
     as ConstructWidgetFrom { ... }
 ```
 
@@ -2141,7 +2174,7 @@ implementations for [data classes](#data-classes) more generally. These
 implementations will typically subject to the criteria that all the data fields
 of the type must implement the interface. An example use case would be to say
 that a data class is serializable if all of its fields were. For this we will
-need a type-of-type for capturing that criteria, maybe something like
+need a facet type for capturing that criteria, maybe something like
 `DataFieldsImplement(MyInterface)`. The templated implementation will need some
 way of iterating through the fields so it can perform operations fieldwise. This
 feature should also implement the interfaces for any tuples whose fields satisfy
@@ -2220,7 +2253,7 @@ the type of `U.x`."
     -   [Allow functions to act as destructors](/proposals/p1154.md#allow-functions-to-act-as-destructors)
     -   [Allow private destructors](/proposals/p1154.md#allow-private-destructors)
     -   [Allow multiple conditional destructors](/proposals/p1154.md#allow-multiple-conditional-destructors)
-    -   [Type-of-type naming](/proposals/p1154.md#type-of-type-naming)
+    -   [Facet type naming](/proposals/p1154.md#type-of-type-naming)
     -   [Other approaches to extensible classes without vtables](/proposals/p1154.md#other-approaches-to-extensible-classes-without-vtables)
 
 -   [#2107: Clarify rules around `Self` and `.Self`](https://github.com/carbon-language/carbon-lang/pull/2107)
@@ -2233,6 +2266,10 @@ the type of `U.x`."
 
     -   [No unqualified lookup when defining outside a scope](/proposals/p2287.md#no-unqualified-lookup-when-defining-outside-a-scope)
 
+-   [#2760: Consistent `class` and `interface` syntax](https://github.com/carbon-language/carbon-lang/pull/2760)
+    -   [Use `extends` instead of `extend`](/proposals/p2760.md#use-extends-instead-of-extend)
+    -   [List base class in class declaration](/proposals/p2760.md#list-base-class-in-class-declaration)
+
 ## References
 
 -   [#257: Initialization of memory and variables](https://github.com/carbon-language/carbon-lang/pull/257)
@@ -2244,3 +2281,4 @@ the type of `U.x`."
 -   [#1154: Destructors](https://github.com/carbon-language/carbon-lang/pull/1154)
 -   [#2107: Clarify rules around `Self` and `.Self`](https://github.com/carbon-language/carbon-lang/pull/2107)
 -   [#2287: Allow unqualified name lookup for class members](https://github.com/carbon-language/carbon-lang/pull/2287)
+-   [#2760: Consistent `class` and `interface` syntax](https://github.com/carbon-language/carbon-lang/pull/2760)

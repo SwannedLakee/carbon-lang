@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/tuple/fail_length_mismatch_with_auto.carbon:[[@LINE+1]]: tuples of different length
+  // CHECK:STDERR: COMPILATION ERROR: fail_length_mismatch_with_auto.carbon:[[@LINE+1]]: tuples of different length
   var a: (auto,) = (1, 2);
   return 0;
 }

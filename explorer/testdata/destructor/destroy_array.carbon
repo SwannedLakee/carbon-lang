@@ -2,14 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: DESTRUCTOR A 1
-// CHECK:STDOUT: DESTRUCTOR A 2
-// CHECK:STDOUT: DESTRUCTOR A 3
-// CHECK:STDOUT: DESTRUCTOR A 4
-// CHECK:STDOUT: DESTRUCTOR A 5
-// CHECK:STDOUT: DESTRUCTOR A 6
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -26,3 +19,11 @@ fn Main() -> i32 {
   var b: [[A; 2]; 2] = (({.n = 4},{.n = 3}), ({.n = 2},{.n = 1}));
   return 1;
 }
+
+// CHECK:STDOUT: DESTRUCTOR A 1
+// CHECK:STDOUT: DESTRUCTOR A 2
+// CHECK:STDOUT: DESTRUCTOR A 3
+// CHECK:STDOUT: DESTRUCTOR A 4
+// CHECK:STDOUT: DESTRUCTOR A 5
+// CHECK:STDOUT: DESTRUCTOR A 6
+// CHECK:STDOUT: result: 1

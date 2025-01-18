@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "common/check.h"
 #include "common/ostream.h"
 #include "explorer/ast/ast_node.h"
 #include "explorer/ast/ast_rtti.h"
@@ -16,7 +17,7 @@
 #include "explorer/ast/expression.h"
 #include "explorer/ast/expression_category.h"
 #include "explorer/ast/value_node.h"
-#include "explorer/common/source_location.h"
+#include "explorer/base/source_location.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLFunctionalExtras.h"
 
@@ -78,7 +79,7 @@ class Pattern : public AstNode {
   // Sets the value of this pattern. Can only be called once, during
   // typechecking.
   void set_value(Nonnull<const Value*> value) {
-    CARBON_CHECK(!value_) << "set_value called more than once";
+    CARBON_CHECK(!value_, "set_value called more than once");
     value_ = value;
   }
 
@@ -106,15 +107,15 @@ class Pattern : public AstNode {
 };
 
 // Call the given `visitor` on all patterns nested within the given pattern,
-// including `pattern` itself. Aborts and returns `false` if `visitor` returns
-// `false`, otherwise returns `true`.
+// including `pattern` itself, in a preorder traversal. Aborts and returns
+// `false` if `visitor` returns `false`, otherwise returns `true`.
 auto VisitNestedPatterns(const Pattern& pattern,
                          llvm::function_ref<bool(const Pattern&)> visitor)
     -> bool;
 inline auto VisitNestedPatterns(Pattern& pattern,
                                 llvm::function_ref<bool(Pattern&)> visitor)
     -> bool {
-  // The non-const version is is implemented in terms of the const version. The
+  // The non-const version is implemented in terms of the const version. The
   // const_cast is safe because every pattern reachable through a non-const
   // pattern is also non-const.
   const Pattern& const_pattern = pattern;
@@ -299,11 +300,14 @@ class GenericBinding : public Pattern {
 
   // The index of this binding, which is the number of bindings that are in
   // scope at the point where this binding is declared.
-  auto index() const -> int { return *index_; }
+  auto index() const -> int {
+    CARBON_CHECK(index_);
+    return *index_;
+  }
 
   // Set the index of this binding. Should be called only during type-checking.
   void set_index(int index) {
-    CARBON_CHECK(!index_) << "should only set depth and index once";
+    CARBON_CHECK(!index_, "should only set depth and index once");
     index_ = index;
   }
 

@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest impl;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: RUNTIME ERROR: explorer/testdata/print/fail_single_brace.carbon:[[@LINE+1]]: `{` must be followed by a second `{` or index in `{`
+  // CHECK:STDERR: RUNTIME ERROR: fail_single_brace.carbon:[[@LINE+1]]: `{` must be followed by a second `{` or index in `{`
   Print("{");
   return 0;
 }

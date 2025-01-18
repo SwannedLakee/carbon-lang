@@ -2,11 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: 1
-// CHECK:STDOUT: 2
-// CHECK:STDOUT: 3
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -14,11 +10,13 @@ base class A {
   var a: i32;
 }
 
-base class B extends A {
+base class B {
+  extend base: A;
   var b: i32;
 }
 
-class C extends B {
+class C {
+  extend base: B;
   var c: i32;
 }
 
@@ -30,3 +28,8 @@ fn Main() -> i32 {
   Print("{0}", pc->c);
   return 0;
 }
+
+// CHECK:STDOUT: 1
+// CHECK:STDOUT: 2
+// CHECK:STDOUT: 3
+// CHECK:STDOUT: result: 0

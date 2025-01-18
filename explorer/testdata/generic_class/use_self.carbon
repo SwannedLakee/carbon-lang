@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -25,3 +24,5 @@ fn Main() -> i32 {
   var p: Point(i32) = Point(i32).Origin(0);
   return p.GetX();
 }
+
+// CHECK:STDOUT: result: 0

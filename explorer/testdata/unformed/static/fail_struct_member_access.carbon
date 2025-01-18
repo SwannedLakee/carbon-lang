@@ -2,13 +2,13 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
   var p: {.x: i32, .y: i32};
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/unformed/static/fail_struct_member_access.carbon:[[@LINE+1]]: use of uninitialized variable p
+  // CHECK:STDERR: COMPILATION ERROR: fail_struct_member_access.carbon:[[@LINE+1]]: use of uninitialized variable p
   p.x = p.y;
   return 0;
 }

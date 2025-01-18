@@ -2,13 +2,13 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 choice C {
   X,
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/choice/fail_recursive_use.carbon:[[@LINE+1]]: 'C' is not usable until after it has been completely declared
+  // CHECK:STDERR: COMPILATION ERROR: fail_recursive_use.carbon:[[@LINE+1]]: 'C' is not usable until after it has been completely declared
   Y(if C.X then i32 else i32)
 }
 

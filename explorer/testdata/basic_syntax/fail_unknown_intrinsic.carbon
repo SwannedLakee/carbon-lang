@@ -2,11 +2,11 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: SYNTAX ERROR: explorer/testdata/basic_syntax/fail_unknown_intrinsic.carbon:[[@LINE+1]]: Unknown intrinsic 'nonexistent'
+  // CHECK:STDERR: SYNTAX ERROR: fail_unknown_intrinsic.carbon:[[@LINE+1]]: Unknown intrinsic 'nonexistent'
   return __intrinsic_nonexistent();
 }

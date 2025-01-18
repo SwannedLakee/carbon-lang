@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: SYNTAX ERROR: explorer/testdata/var/local/fail_missing_intro.carbon:[[@LINE+1]]: syntax error, unexpected COLON
+  // CHECK:STDERR: SYNTAX ERROR: fail_missing_intro.carbon:[[@LINE+1]]: syntax error, unexpected COLON
   x: i32;
   return 1;
 }

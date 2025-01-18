@@ -28,8 +28,8 @@ void ImplScope::Add(Nonnull<const Value*> iface,
                     const TypeChecker& type_checker,
                     std::optional<TypeStructureSortKey> sort_key) {
   if (const auto* constraint = dyn_cast<ConstraintType>(iface)) {
-    CARBON_CHECK(!sort_key)
-        << "should only be given a sort key for an impl of an interface";
+    CARBON_CHECK(!sort_key,
+                 "should only be given a sort key for an impl of an interface");
     // The caller should have substituted `.Self` for `type` already.
     Add(constraint->impls_constraints(), deduced, impl_bindings, witness,
         type_checker);
@@ -85,8 +85,8 @@ static auto DiagnoseUnequalValues(SourceLocation source_loc,
                                   Nonnull<const Value*> b_evaluated,
                                   Nonnull<const EqualityContext*> equality_ctx)
     -> Error {
-  CARBON_CHECK(!ValueEqual(a_evaluated, b_evaluated, equality_ctx))
-      << "expected unequal values";
+  CARBON_CHECK(!ValueEqual(a_evaluated, b_evaluated, equality_ctx),
+               "expected unequal values");
   auto error = ProgramError(source_loc);
   error << "constraint requires that " << *a_written;
   if (!ValueEqual(a_written, a_evaluated, std::nullopt)) {
@@ -110,7 +110,7 @@ auto ImplScope::Resolve(Nonnull<const Value*> constraint_type,
       std::optional<Nonnull<const Witness*>> witness,
       TryResolve(constraint_type, impl_type, source_loc, type_checker, bindings,
                  /*diagnose_missing_impl=*/true));
-  CARBON_CHECK(witness) << "should have diagnosed missing impl";
+  CARBON_CHECK(witness, "should have diagnosed missing impl");
   return *witness;
 }
 
@@ -183,8 +183,7 @@ auto ImplScope::TryResolve(Nonnull<const Value*> constraint_type,
         CARBON_ASSIGN_OR_RETURN(
             Nonnull<const Value*> type,
             type_checker.Substitute(local_bindings, intrinsic.type));
-        IntrinsicConstraint converted = {
-            .type = type, .kind = intrinsic.kind, .arguments = {}};
+        IntrinsicConstraint converted(type, intrinsic.kind, {});
         converted.arguments.reserve(intrinsic.arguments.size());
         for (Nonnull<const Value*> argument : intrinsic.arguments) {
           CARBON_ASSIGN_OR_RETURN(
@@ -192,9 +191,9 @@ auto ImplScope::TryResolve(Nonnull<const Value*> constraint_type,
               type_checker.Substitute(local_bindings, argument));
           converted.arguments.push_back(subst_arg);
         }
-        CARBON_ASSIGN_OR_RETURN(
-            bool intrinsic_satisfied,
-            type_checker.IsIntrinsicConstraintSatisfied(converted, *this));
+        CARBON_ASSIGN_OR_RETURN(bool intrinsic_satisfied,
+                                type_checker.IsIntrinsicConstraintSatisfied(
+                                    source_loc, converted, *this));
         if (!intrinsic_satisfied) {
           if (!diagnose_missing_impl) {
             return {std::nullopt};
@@ -239,7 +238,7 @@ auto ImplScope::TryResolve(Nonnull<const Value*> constraint_type,
     }
     return {type_checker.MakeConstraintWitness(std::move(witnesses))};
   }
-  CARBON_FATAL() << "expected a constraint, not " << *constraint_type;
+  CARBON_FATAL("expected a constraint, not {0}", *constraint_type);
 }
 
 auto ImplScope::VisitEqualValues(
@@ -334,7 +333,7 @@ static auto CombineResults(Nonnull<const InterfaceType*> iface_type,
       return b;
     }
   }
-  CARBON_CHECK(impl_a && impl_b) << "non-final impl should not be symbolic";
+  CARBON_CHECK(impl_a && impl_b, "non-final impl should not be symbolic");
 
   // At this point, we're comparing two `impl` declarations, and either they're
   // both final or neither of them is.
@@ -415,10 +414,11 @@ auto ImplScope::TryResolveInterfaceHere(
 
 // TODO: Add indentation when printing the parents.
 void ImplScope::Print(llvm::raw_ostream& out) const {
-  out << "impl declarations: ";
-  llvm::ListSeparator sep;
+  llvm::ListSeparator sep(",\n    ");
+  out << "    "
+      << "[";
   for (const ImplFact& impl : impl_facts_) {
-    out << sep << *(impl.type) << " as " << *(impl.interface);
+    out << sep << "`" << *(impl.type) << "` as `" << *(impl.interface) << "`";
     if (impl.sort_key) {
       out << " " << *impl.sort_key;
     }
@@ -427,10 +427,10 @@ void ImplScope::Print(llvm::raw_ostream& out) const {
     out << sep;
     llvm::ListSeparator equal(" == ");
     for (Nonnull<const Value*> value : eq->values) {
-      out << equal << *value;
+      out << equal << "`" << *value << "`";
     }
   }
-  out << "\n";
+  out << "]\n";
   if (parent_scope_) {
     out << **parent_scope_;
   }

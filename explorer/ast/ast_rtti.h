@@ -35,7 +35,7 @@ class AstRttiNodeKind : public CARBON_ENUM_BASE(AstRttiNodeKind) {
   // other enumerations to match, and to implement range checks.
   using EnumBase::AsInt;
 
-  CARBON_AST_FOR_EACH_FINAL_CLASS(CARBON_ENUM_CONSTANT_DECLARATION)
+  CARBON_AST_FOR_EACH_FINAL_CLASS(CARBON_ENUM_CONSTANT_DECL)
 };
 
 // Define the constant members for AstRttiNodeKind.
@@ -46,13 +46,14 @@ CARBON_AST_FOR_EACH_FINAL_CLASS(CONSTANT_DEFINITION)
 
 // Define Kind enumerations for all base classes.
 #define DEFINE_KIND_ENUM(C)                                                 \
-  CARBON_DEFINE_RAW_ENUM_CLASS(C##Kind, int) {                              \
+  CARBON_DEFINE_RAW_ENUM_CLASS_NO_NAMES(C##Kind, int) {                     \
     CARBON_AST_FOR_EACH_FINAL_CLASS_BELOW(C, DEFINE_ENUMERATOR)             \
   };                                                                        \
   template <typename Derived>                                               \
-  class C##KindTemplate : public CARBON_ENUM_BASE_CRTP(C##Kind, Derived) {  \
+  class C##KindTemplate                                                     \
+      : public CARBON_ENUM_BASE_CRTP(C##Kind, Derived, AstRttiNodeKind) {   \
    private:                                                                 \
-    using Base = CARBON_ENUM_BASE_CRTP(C##Kind, Derived);                   \
+    using Base = CARBON_ENUM_BASE_CRTP(C##Kind, Derived, AstRttiNodeKind);  \
     friend class AstRttiNodeKind;                                           \
                                                                             \
    public:                                                                  \

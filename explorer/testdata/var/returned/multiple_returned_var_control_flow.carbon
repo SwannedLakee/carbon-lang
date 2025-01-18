@@ -2,8 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 1
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -20,3 +19,5 @@ fn IntDiff(a: i32, b: i32) -> i32 {
 fn Main() -> i32 {
   return IntDiff(1, 2);
 }
+
+// CHECK:STDOUT: result: 1

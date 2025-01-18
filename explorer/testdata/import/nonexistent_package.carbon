@@ -4,8 +4,7 @@
 //
 // TODO: This SHOULD fail but doesn't presently.
 //
-// AUTOUPDATE
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -14,3 +13,5 @@ import ExplorerTest library "Nonexistent";
 fn Main() -> i32 {
   return 0;
 }
+
+// CHECK:STDOUT: result: 0

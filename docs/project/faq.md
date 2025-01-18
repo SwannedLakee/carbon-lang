@@ -88,19 +88,14 @@ developing the language openly, publicly, and with broad participation.
 
 ### How complete is Carbon's design?
 
-We've resolved several of the most challenging language design technical
-decisions we anticipated based on experience with C++ and its constraints,
-particularly around generics and inheritance. Beyond those two areas, we have
-initial designs for class types, inheritance, operator overloading, syntactic
-and lexical structure, and modular code organization. We are aiming to complete
-the initial 0.1 language design around the end of 2022 although there are a
-large number of variables in that timeline. See our [roadmap](roadmap.md) for
-details.
+Key design questions for the initial
+[0.1 language design](milestones.md#milestone-01-a-minimum-viable-product-mvp-for-evaluation)
+have been resolved, and we are actively working on toolchain implementation. See
+our [roadmap](roadmap.md) for an overview of current work.
 
 References:
 
 -   [Carbon design overview](/docs/design/README.md)
--   [How do Carbon generics differ from templates?](#how-do-carbon-generics-differ-from-templates)
 -   [Roadmap](roadmap.md)
 
 ### How many people are involved in Carbon?
@@ -111,18 +106,8 @@ provides activity metrics.
 
 ### Is there a demo?
 
-Yes! A prototype interpreter demo `explorer` can be used to execute simple
-examples. For example:
-
-```
-$ bazel run //explorer -- ./explorer/testdata/print/format_only.carbon
-```
-
-Example source files can be found under
-[/explorer/testdata](/explorer/testdata).
-
-Carbon can also be explored interactively on
-[https://carbon.compiler-explorer.com](https://carbon.compiler-explorer.com/).
+Yes! See the [getting started](/README.md#getting-started) tip for current
+advice.
 
 ### Where should I ask questions about Carbon Language?
 
@@ -255,7 +240,7 @@ features, or
 maintaining a C++/Rust FFI may not be economically viable today (but it is an
 area of active research: [cxx](https://crates.io/crates/cxx),
 [autocxx](https://crates.io/crates/autocxx),
-[Crubit](https://github.com/google/crubit/blob/main/docs/design.md)).
+[Crubit](https://github.com/google/crubit/blob/main/docs/design/design.md)).
 
 The Carbon community is looking for a language that existing, large, monolithic
 C++ codebases can incrementally adopt and have a prospect of migrating away from
@@ -270,7 +255,7 @@ we are not certain that:
     the project working.
 
 See
-[Carbon's goals](/docs/project/goals.md#interoperability-with-and-migration-from-existing-c-code)
+[Carbon's goals](goals.md#interoperability-with-and-migration-from-existing-c-code)
 for an in-depth discussion of Carbon's vision for C++/Carbon interop and
 migration.
 
@@ -323,10 +308,10 @@ design.
 
 ### Why aren't `<` and `>` used as delimiters?
 
-[One of our goals for Carbon](/docs/project/goals.md#fast-and-scalable-development)
-is that it should support parsing without contextual or semantic information,
-and experience with C++ has shown that using `<` as both a binary operator and
-an opening delimiter makes that goal difficult to achieve.
+[One of our goals for Carbon](goals.md#fast-and-scalable-development) is that it
+should support parsing without contextual or semantic information, and
+experience with C++ has shown that using `<` as both a binary operator and an
+opening delimiter makes that goal difficult to achieve.
 
 For example, in C++, the expression `a<b>(c)` could parse as either a function
 call with a template argument `b` and an ordinary argument `c`, or as a chained
@@ -335,10 +320,10 @@ to perform name lookup on `a` to determine whether there's a function named `a`
 in scope.
 
 It's also worth noting that Carbon
-[doesn't use _any_ kind of brackets](https://github.com/carbon-language/carbon-lang/blob/trunk/docs/design/README.md#checked-and-template-parameters)
-to mark template or generic parameters, so if Carbon had angle brackets, they
-would mean something different than they do in C++, which could cause confusion.
-We do use square brackets to mark _deduced_ parameters, as in:
+[doesn't use _any_ kind of brackets](/docs/design/README.md#checked-and-template-parameters)
+to mark template- or checked-generic parameters, so if Carbon had angle
+brackets, they would mean something different than they do in C++, which could
+cause confusion. We do use square brackets to mark _deduced_ parameters, as in:
 
 ```
 fn Sort[T:! Comparable](a: Vector(T)*)
@@ -349,7 +334,7 @@ particular, deduced parameters are never mentioned at the callsite, so those
 square brackets are never part of the expression syntax.
 
 See [Proposal #676: `:!` generic syntax](/proposals/p0676.md) for more
-background on how and why we chose our current generics syntax.
+background on how and why we chose our current compile-time parameter syntax.
 
 ### Why do variable declarations have to start with `var` or `let`?
 
@@ -381,8 +366,7 @@ With this example, the parser would need to look four tokens ahead to determine
 that it's parsing a variable declaration rather than an expression. With more
 deeply-nested patterns, it would have to look ahead farther. Avoiding this sort
 of unbounded lookahead is an important part of our
-[fast and scalable development](/docs/project/goals.md#fast-and-scalable-development)
-goal.
+[fast and scalable development](goals.md#fast-and-scalable-development) goal.
 
 ### Why do variable declarations have to have types?
 
@@ -401,11 +385,13 @@ equal to the value of the expression. So `var the_answer = 42;` would try to
 match `42` with the value of the expression `the_answer`, which requires a
 variable named `the_answer` to already exist.
 
-There are other ways of approaching pattern matching, but there are tradeoffs.
-Pattern matching is still on a provisional design, and as of August 2022 it
-hasn't been fully reviewed with alternatives considered. A future proposal for
-pattern matching will need to weigh the tradeoffs in more detail, and may come
-to a different decision.
+The pattern matching proposal details alternative
+[shorthand for `auto`](/proposals/p2188.md#shorthand-for-auto) and the tradeoffs
+that were considered.
+
+References:
+
+-   [Pattern matching design](/docs/design/pattern_matching.md)
 
 ## How will Carbon work?
 
@@ -444,24 +430,24 @@ will handle both templates (matching C++) and checked generics (common in other
 languages: Rust, Swift, Go, Kotlin, Java, and so on).
 
 The key difference between the two is that template arguments can only finish
-type-checking _during_ instantiation, whereas generics specify an interface with
-which arguments can finish type-checking _without_ instantiation. This has a
-couple of important benefits:
+type-checking _during_ instantiation, whereas checked generics specify an
+interface with which arguments can finish type-checking _without_ instantiation.
+This has a couple of important benefits:
 
--   Type-checking errors for generics happen earlier, making it easier for the
-    compiler to produce helpful diagnostics.
--   Generic functions can generate less compiled output, allowing compilation
-    with many uses to be faster.
+-   Type-checking errors for checked generics happen earlier, making it easier
+    for the compiler to produce helpful diagnostics.
+-   Checked-generic functions can generate less compiled output, allowing
+    compilation with many uses to be faster.
     -   For comparison, template instantiations are a major factor for C++
         compilation latency.
 
-Although Carbon will prefer generics over templates, templates are provided for
-migration of C++ code.
+Although Carbon will prefer checked generics over templates, templates are
+provided for migration of C++ code.
 
 References:
 
 -   [Generics: Goals: Better compiler experience](/docs/design/generics/goals.md#better-compiler-experience)
--   [Generics: Terminology: Generic versus template parameters](/docs/design/generics/terminology.md#generic-versus-template-parameters)
+-   [Generics: Terminology: Checked versus template parameters](/docs/design/generics/terminology.md#checked-versus-template-parameters)
 
 ### What is Carbon's memory model?
 
@@ -600,8 +586,8 @@ The Carbon toolchain is being implemented in C++, and we also use Python and
 Starlark. As we're building off of the LLVM project, familiarity with Clang and
 other parts of LLVM will be advantageous, but not required.
 
-Our [contribution tools](/docs/project/contribution_tools.md) page documents
-specific tools we use when building.
+Our [contribution tools](contribution_tools.md) page documents specific tools we
+use when building.
 
 ### When do we revisit decisions or reopen discussions?
 

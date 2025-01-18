@@ -2,7 +2,7 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
@@ -36,5 +36,5 @@ fn Main() -> i32 {
     case (_: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  AB.A()) => { return 16; }
     case (_: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  _: AB,  AB.B()) => { return 17; }
   }
-// CHECK:STDERR: COMPILATION ERROR: explorer/testdata/match/fail_exhaustive_exponential_series_t.carbon:[[@LINE+1]]: non-exhaustive match may allow control-flow to reach the end of a function that provides a `->` return type
+// CHECK:STDERR: COMPILATION ERROR: fail_exhaustive_exponential_series_t.carbon:[[@LINE+1]]: non-exhaustive match may allow control-flow to reach the end of a function that provides a `->` return type
 }

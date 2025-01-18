@@ -2,25 +2,16 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
-// CHECK:STDOUT: 6
-// CHECK:STDOUT: 5
-// CHECK:STDOUT: 6
-// CHECK:STDOUT: 5
-// CHECK:STDOUT: 6
-// CHECK:STDOUT: 5
-// CHECK:STDOUT: 6
-// CHECK:STDOUT: 5
-// CHECK:STDOUT: result: 0
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 class A { var n: i32; }
 
-external impl A as Inc {
+impl A as Inc {
   fn Op[addr self: Self*]() { ++self->n; }
 }
-external impl A as Dec {
+impl A as Dec {
   fn Op[addr self: Self*]() { --self->n; }
 }
 
@@ -44,3 +35,13 @@ fn Main() -> i32 {
   Print("{0}", a.n);
   return 0;
 }
+
+// CHECK:STDOUT: 6
+// CHECK:STDOUT: 5
+// CHECK:STDOUT: 6
+// CHECK:STDOUT: 5
+// CHECK:STDOUT: 6
+// CHECK:STDOUT: 5
+// CHECK:STDOUT: 6
+// CHECK:STDOUT: 5
+// CHECK:STDOUT: result: 0

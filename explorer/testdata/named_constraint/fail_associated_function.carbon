@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 constraint X {
-  // CHECK:STDERR: COMPILATION ERROR: explorer/testdata/named_constraint/fail_associated_function.carbon:[[@LINE+1]]: associated function not permitted in named constraint
+  // CHECK:STDERR: COMPILATION ERROR: fail_associated_function.carbon:[[@LINE+1]]: associated function not permitted in named constraint
   fn F();
 }
 

@@ -2,12 +2,12 @@
 // Exceptions. See /LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// AUTOUPDATE
+// NOAUTOUPDATE
 
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  // CHECK:STDERR: SYNTAX ERROR: explorer/testdata/string/fail_invalid_escape.carbon:[[@LINE+1]]: Invalid escaping in string: "str\e"
+  // CHECK:STDERR: SYNTAX ERROR: fail_invalid_escape.carbon:[[@LINE+1]]: Invalid escaping in string: "str\e"
   Print("str\e");
   return 0;
 }

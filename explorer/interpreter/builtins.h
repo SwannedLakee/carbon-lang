@@ -14,8 +14,8 @@
 #include "explorer/ast/declaration.h"
 #include "explorer/ast/expression.h"
 #include "explorer/ast/value.h"
-#include "explorer/common/nonnull.h"
-#include "explorer/common/source_location.h"
+#include "explorer/base/nonnull.h"
+#include "explorer/base/source_location.h"
 
 namespace Carbon {
 
@@ -26,7 +26,7 @@ CARBON_DEFINE_RAW_ENUM_CLASS(Builtin, int) {
 
 class Builtin : public CARBON_ENUM_BASE(Builtin) {
  public:
-#define CARBON_BUILTIN(Name) CARBON_ENUM_CONSTANT_DECLARATION(Name)
+#define CARBON_BUILTIN(Name) CARBON_ENUM_CONSTANT_DECL(Name)
 #include "explorer/interpreter/builtins.def"
 
   static const int NumBuiltins;
